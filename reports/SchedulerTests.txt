@@ -1,0 +1,12 @@
+Queued slow healthy proxies: 32; 4 protocol workers; 500ms timeout; total 1.66s; peak TCP=0, probes=4
+PASS: Every delayed healthy proxy survives queue waits longer than its timeout
+PASS: Fixture actually exercises queue waiting beyond the timeout
+PASS: Both scheduler stages respect concurrency bounds
+PASS: Stage counters drain to zero
+PASS: Cancel drains producers, consumers and backpressure waits
+PASS: Output failure is preserved rather than hidden by peer cancellation
+TCP-only failure batch, 24 endpoints, base 4, 200ms: previous coupled workers=1.265s; staged scheduler=0.440s
+PASS: Staged admission publishes every TCP failure exactly once
+PASS: Empty input finishes without deadlock
+PASS: Canceled pipeline leaves no connected peers
+TOTAL: 9 scheduler assertions passed

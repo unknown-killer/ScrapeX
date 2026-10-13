@@ -1,0 +1,11 @@
+Silent reachable proxy benchmark: 40 endpoints, 20 workers, 200ms timeout.
+Previous 12-attempt schedule: 5.194s; new fast pipeline: 0.490s; speedup: 10.60x; peak accepted sockets: 120
+PASS: At least 3x faster on identical silent peers (same timeout)
+PASS: Batch bounded by parallel rounds instead of 12 sequential timeouts
+PASS: All completed and canceled sockets released
+PASS: Cancellation promptly closes concurrent probes
+PASS: Cancellation leaves no live checker sockets
+PASS: Optional retry checks both alternate targets without inventing success
+PASS: Optional retry is two parallel rounds, not twelve serial waits
+PASS: Refused endpoint exits at single TCP gate
+TOTAL: 8 performance assertions passed

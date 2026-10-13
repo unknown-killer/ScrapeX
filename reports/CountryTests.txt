@@ -1,0 +1,13 @@
+PASS: Reject country for wrong IP / accidental exit-IP response
+PASS: Reject invalid ISO country code
+PASS: Normalize ISO code and local country name
+PASS: Third provider succeeds after missing and mismatched responses
+PASS: Positive memory cache avoids repeated requests
+PASS: Persistent cache works across resolver instances
+PASS: Direct failure recovers through SOCKS5 route
+PASS: Direct failure recovers through SOCKS5 route
+PASS: 429 cooldown applies to proxy route too
+PASS: Proxy country transport decodes chunked JSON
+PASS: Truncated chunked response is rejected
+PASS: Country lookup cancellation propagates
+TOTAL: 12 country assertions passed

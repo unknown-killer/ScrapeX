@@ -1,0 +1,61 @@
+PASS: Reject 127.0.0.1:80
+PASS: Reject 10.0.0.1:80
+PASS: Reject 999.2.3.4:80
+PASS: Reject 8.8.8.8:0
+PASS: Reject 8.8.8.8:65536
+PASS: Reject 8.8.8.8:80/path
+PASS: Reject user:pass@8.8.8.8:80
+PASS: Reject <html>8.8.8.8:80</html>
+PASS: Reject 169.254.169.254:80
+PASS: Reject 1.2:80
+PASS: Canonical endpoint
+PASS: Protocol detection 0
+PASS: Latency 0
+PASS: TCP ping excludes response wait; interim 100 accepted 0
+PASS: SOCKS5 uses IPv4 address type for numeric targets
+PASS: Protocol detection 1
+PASS: Latency 1
+PASS: TCP ping excludes response wait; interim 100 accepted 1
+PASS: Protocol detection 2
+PASS: Latency 2
+PASS: TCP ping excludes response wait; interim 100 accepted 2
+PASS: SOCKS5 delegates hostname DNS to proxy
+PASS: Protocol detection 1
+PASS: Latency 1
+PASS: TCP ping excludes response wait; interim 100 accepted 1
+PASS: All protocol timeouts return failure
+PASS: Bounded timeout
+PASS: Cancellation propagated
+PASS: Prompt cancellation
+PASS: Captive 200 rejected for 204 target
+PASS: Source parsing and cross-protocol deduplication
+PASS: Source report counts
+PASS: Repeated API pages terminate and deduplicate
+PASS: API schema change reported
+PASS: Invalid JSON isolated
+PASS: Oversized source rejected
+PASS: HTTP success cannot imply HTTPS success
+PASS: Separate protocol verdicts
+PASS: HTTP-only output saved separately
+PASS: Verified HTTPS output excludes HTTP-only results
+PASS: Failed endpoints never enter working output
+PASS: Untrusted TLS certificate is rejected
+PASS: UI constructed and rendered
+PASS: Working Proxy default includes HTTPS and HTTP-only, excludes failed
+PASS: Country codes displayed with country names
+PASS: Flags have compact fixed dimensions
+PASS: HTTPS-only result displays measured TCP ping
+PASS: Independent protocol counters
+PASS: Export groups and selects countries
+PASS: Country selection updates export count
+PASS: Empty country/protocol intersection cannot export
+PASS: Export preserves verified protocol prefixes
+PASS: Country filenames reject invalid codes
+PASS: Repeated starts do not create extra workers
+PASS: UI operation completed without deadlock
+PASS: Operation and cancellation state released
+PASS: UI operation completed without deadlock
+PASS: Restart after cancellation
+PASS: UI operation completed without deadlock
+PASS: Close waits for cancellation, then disposes UI
+TOTAL: 60 passed

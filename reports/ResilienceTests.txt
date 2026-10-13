@@ -1,0 +1,21 @@
+PASS: Encoded IP and port decode as data without executing scripts
+PASS: Hidden decoy digits never corrupt table port
+PASS: Split IP/colon/port elements retain the endpoint
+PASS: Only the known feed's Base64 literal is decoded; other script data ignored
+PASS: Country suffix and HTML line breaks in My-Proxy list
+PASS: FineProxy nested address block is extracted without metadata
+PASS: Pagination follows same-site links and decodes HTML entities
+PASS: Pagination does not wander into unrelated paths
+PASS: Chinese feed numbered HTML pages are supported
+PASS: HTTP 308 follows relative Location on .NET Framework
+PASS: Redirect loops terminate and report a source error
+PASS: Read-only/closed write is a connection failure, not an unhandled NotSupportedException
+PASS: Write cancellation is preserved
+PASS: 50,000 endpoints complete exactly once despite TCP and protocol socket exhaustion
+PASS: Both resource failures retry the same endpoint
+PASS: Budget waiting and recovery never reduce an endpoint's configured timeout
+PASS: Shared weighted socket bound shrinks under pressure and drains completely
+PASS: 50,000-item run drains all stage workers
+PASS: Persistent local pressure remains cancellable without false failed verdicts
+PASS: Remote connection refusal is not retried as local socket exhaustion
+TOTAL: 20 resilience assertions passed

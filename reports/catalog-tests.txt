@@ -1,0 +1,22 @@
+PASS: embedded catalog available with no sidecar
+PASS: every one of the 36 requested URLs is embedded
+PASS: clean server installation uses embedded catalog
+PASS: empty preferences restore defaults
+PASS: upgrade preserves custom sources and adds new defaults
+PASS: subsequent upgrades respect deleted defaults
+PASS: commented feeds remain disabled
+PASS: SPYS metadata and protocol colon format; reject private and junk
+PASS: space/tab-separated IP and port lists
+PASS: country suffix allowed only for its documented feed format
+PASS: JSON pagination count and protocol hint preserved
+PASS: JSON rejects authenticated routes
+PASS: API errors are visible instead of successful empty lists
+PASS: HTML uses table cells and list blocks, ignores script/incidental IPs
+PASS: Full Detail contains working routes with explicit security classification
+PASS: measured latency and safe single-line details
+PASS: late country result updates file after check writer disposal
+PASS: country updates replace row without duplicates
+PASS: plain endpoint files remain separated and importable
+PASS: concurrent detail updates use complete atomic snapshots
+PASS: country export supports Full Detail format
+Passed 21 catalog/export assertions.
