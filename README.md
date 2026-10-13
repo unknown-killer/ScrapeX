@@ -33,7 +33,7 @@
 
 ## Download & run
 
-1. Download **ScrapeX-v1.0.0-windows-portable.zip** from [Releases](https://github.com/unknown-killer/ScrapeX/releases).
+1. Download **ScrapeX-v1.0.1-windows-portable.zip** from [Releases](https://github.com/unknown-killer/ScrapeX/releases).
 2. Extract the entire archive to a writable folder on Windows with **.NET Framework 4.8** installed.
 3. Run `ScrapeX.exe`, keeping its DLL and configuration file alongside it.
 4. Choose **Collect proxies**, import an endpoint list, or click **Check HTTP + TLS** to collect automatically when the list is empty.
@@ -105,7 +105,7 @@ See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the bundled dependency 
 
 ### دانلود و شروع کار
 
-۱. از [بخش دانلود نسخه‌ها](https://github.com/unknown-killer/ScrapeX/releases/latest)، فایل **ScrapeX-v1.0.0-windows-portable.zip** را دریافت کنید.
+۱. از [بخش دانلود نسخه‌ها](https://github.com/unknown-killer/ScrapeX/releases/latest)، فایل **ScrapeX-v1.0.1-windows-portable.zip** را دریافت کنید.
 
 ۲. تمام محتویات فایل فشرده را در پوشه‌ای با امکان نوشتن استخراج کنید. برای اجرا، ویندوز و **.NET Framework 4.8** لازم است.
 
