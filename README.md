@@ -2,14 +2,14 @@
   <img src="ScrapeX/Resources/scrapex-logo.png" alt="ScrapeX" width="420" />
   <h1>ScrapeX — Proxy Intelligence Workspace</h1>
   <p><strong>Collect. Verify. Organize. Export.</strong></p>
-  <p>A modern Windows desktop workspace for public proxy discovery and HTTP / HTTPS verification.</p>
+  <p>Discover public proxies, verify their capabilities, and organize your results in one Windows desktop workspace.</p>
   <p>
     <img alt="Platform: Windows" src="https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square" />
     <img alt="Framework: .NET 4.8" src="https://img.shields.io/badge/.NET-Framework%204.8-512BD4?style=flat-square" />
     <img alt="Language: C Sharp" src="https://img.shields.io/badge/language-C%23-239120?style=flat-square" />
     <img alt="Bundled sources: 168" src="https://img.shields.io/badge/bundled%20sources-168-36D6B5?style=flat-square" />
   </p>
-  <p><a href="https://github.com/unknown-killer/ScrapeX/releases/latest"><strong>Download for Windows</strong></a> · <a href="#features">Features</a> · <a href="#build-from-source">Build from source</a> · <a href="#راهنمای-فارسی">فارسی</a></p>
+  <p><a href="https://github.com/unknown-killer/ScrapeX/releases/latest"><strong>Download for Windows</strong></a> · <a href="#features">Features</a> · <a href="#download--run">Quick start</a> · <a href="#build-from-source">Build from source</a></p>
 </div>
 
 ![ScrapeX desktop interface](docs/screenshot.png)
@@ -19,16 +19,16 @@
 
 | Capability | What ScrapeX does |
 | --- | --- |
-| **168 bundled sources** | Collect from public TXT feeds, JSON APIs and supported websites. Defaults are embedded, so a clean installation does not need a source file. |
-| **HTTP · SOCKS4 · SOCKS5** | Detect protocol support with concurrent probes and display separate working counts. |
-| **Independent HTTPS verification** | Test a real TLS connection through the proxy with certificate and hostname validation. HTTP-only results stay separate. |
-| **Adaptive concurrency** | Separate TCP admission and protocol queues, bounded sockets, cancellation and automatic retry when local socket capacity is exhausted. |
-| **Country intelligence** | ISO country codes, compact local flags and country names; multiple providers with direct/proxy fallback and a persistent positive cache. |
-| **Measured latency** | TCP connection time plus separate HTTP and HTTPS probe timings. |
-| **Flexible exports** | Export by country and protocol, split countries into separate files, or save a detailed report. |
-| **Full Detail.txt** | Automatic working-result report with address, country, protocol, TLS verdict, timings and diagnostic details. |
-| **Modern desktop UI** | Dark theme, a resizable results table, live counters and an editable Visual Studio WinForms Designer. |
-| **Editable source catalog** | Add custom sources, disable entries, restore defaults and deduplicate endpoints across feeds. |
+| **Built-in proxy discovery** | Start collecting immediately from 168 bundled sources, including public feeds, APIs and supported websites. Duplicate endpoints are merged automatically. |
+| **HTTP · SOCKS4 · SOCKS5** | Identify supported proxy protocols and see working totals for each type at a glance. |
+| **HTTPS / TLS verification** | Verify real HTTPS requests with certificate and hostname validation. Browse and export HTTPS-verified and HTTP-only proxies separately. |
+| **Parallel checking** | Process multiple proxies concurrently with adjustable parallelism, configurable timeouts, adaptive connection management and live progress. |
+| **Country information** | View country names, two-letter ISO codes and compact flags beside each result. Multiple lookup providers and cached results support country discovery. |
+| **Connection timings** | Compare TCP connection latency and separate HTTP / HTTPS request timings to find proxies that suit your needs. |
+| **Country & protocol exports** | Choose the countries and proxy types you want, or organize your exports into separate country files. |
+| **Detailed reports** | Automatically save working results to **Full Detail.txt**, including endpoint, country, protocol, HTTPS status and measured timings. |
+| **Interactive results workspace** | Explore results in a resizable dark interface with working-proxy filters, IP search, protocol counters and session statistics. |
+| **Custom source catalog** | Add your own source URLs, enable or disable feeds, restore the built-in catalog and import existing proxy lists. |
 
 ## Download & run
 
@@ -38,7 +38,7 @@
 4. Choose **Collect proxies**, import an endpoint list, or click **Check HTTP + TLS** to collect automatically when the list is empty.
 5. Use **Working Proxy**, **Export HTTPS**, **Export HTTP only** and **Results folder** to inspect and save results.
 
-Saved sessions and country cache live under `%LOCALAPPDATA%\ScrapeX`. A source returning addresses is not evidence that those proxies work; each endpoint must pass its own checks.
+Saved sessions and country cache live under `%LOCALAPPDATA%\ScrapeX`.
 
 ## Understanding the results
 
@@ -69,21 +69,9 @@ msbuild ScrapeX.sln /p:Configuration=Release
 
 Use **View Designer** on `Form1.cs` and `ExportForm.cs` to edit controls visually. The default client size is 1440 × 1000; the result table expands with the window.
 
-## Validation
+## Developer documentation
 
-The included suite contains **130 assertions** covering protocol handshakes, TLS rejection, timeout/cancellation, source parsing, exports, country resolution and UI behavior. The resilience suite processes **50,000 simulated endpoints** with injected TCP/protocol capacity errors. That is a deterministic stress test, not a claim of 50,000 working internet proxies.
-
-The bundled catalog was audited on **2026-10-07**. Detailed audit documents ship with the portable release; source freshness can change after that date. Technical implementation notes are in [docs/TECHNICAL.md](docs/TECHNICAL.md).
-
-## راهنمای فارسی
-
-اسکرپ ایکس برای جمع‌آوری، بررسی و دسته‌بندی پروکسی‌های عمومی ساخته شده است. از بخش **Releases** نسخهٔ Portable را دانلود و همهٔ فایل‌ها را استخراج کنید. برای اجرا ویندوز و دات‌نت فریم‌ورک ۴٫۸ لازم است.
-
-- تست HTTPS/SSL جداگانه انجام می‌شود و خروجی پروکسی‌های بدون HTTPS از بقیه جداست.
-- کشور، کد کشور، پرچم محلی و زمان اتصال در جدول دیده می‌شوند.
-- خروجی بر اساس کشور و نوع پروکسی و فایل **Full Detail.txt** در دسترس است.
-- کمبود سوکت باعث ثبت نتیجهٔ خراب برای پروکسی نمی‌شود؛ فشار اتصال کاهش یافته و همان مورد دوباره امتحان می‌شود.
-- کنترل‌های رابط کاربری در Designer ویژوال استودیو قابل ویرایش‌اند.
+The interface is built with standard WinForms Designer controls for visual customization in Visual Studio. See [technical documentation](docs/TECHNICAL.md) for architecture, source adapters and test coverage. Source-audit reports are included in the portable release; the bundled catalog was audited on **2026-10-07**.
 
 ## Third-party components
 
