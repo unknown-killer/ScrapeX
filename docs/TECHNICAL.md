@@ -1,3 +1,20 @@
+# Server/API architecture — 1.1.0
+
+`ServerControl` and `MonitorControl` are standard Designer-editable WinForms UserControls. `Form1.Server` connects them to an in-process `HttpListener` API and the refresh coordinator. See [SERVER-API.md](SERVER-API.md) for the complete bilingual operating guide.
+
+`RefreshCoordinator` serializes scheduled and requested cycles. Its admission semaphore is shared with desktop scraping/checking. `ServerRefreshPipeline` collects a fresh candidate set, checks through the existing bounded scheduler, enriches country metadata and writes text outputs. Only a completed cycle replaces `ProxyPublication`: durable atomic file replacement happens before the in-memory snapshot swap. Cancellation and exceptions preserve the previous snapshot; a completed empty result clears it. Query-time age filtering applies to every publication.
+
+`ProxyApiServer` exposes read-only TXT/JSON routes with validated filters, pagination, API-key headers, bounded concurrent requests and response deadlines. `ServerSettings` protects the saved API key with Windows DPAPI for the current account. It does not install a service, alter firewall rules, reserve URLs or provision certificates.
+
+The 2026-11-13 catalog contains **180 active sources**; custom catalogs support up to 512 URLs. The [current source audit](SOURCE-AUDIT.md) records 271 examined URLs, 12 enabled additions and measured unique candidate coverage. The earlier source counts and audits below are historical. Some older live-run artifacts referenced below are available only in previous release packages or the original audit workspace.
+
+The Release test run passed **172 assertions**, including 42 in `tools/ServerTests.cs` for protected live-loopback HTTP routes, query validation, persistence, expiry, cancellation and non-overlapping refreshes. A separate `tools/ServerLiveSmoke.cs` online run collected and checked 919 candidates and published 3 working endpoints. It uses an isolated data directory; live availability is not a deterministic test expectation. The source ZIP was also extracted and built independently with restored NuGet dependencies.
+
+---
+
+
+## Historical desktop architecture and audits
+
 # ScrapeX
 
 .NET Framework 4.8 Windows Forms proxy collector and checker. Open `ScrapeX.sln` in Visual Studio; use **View Designer** on `Form1.cs` or `ExportForm.cs`. Default client size is 1440 × 1000, and the results area grows from 232 to 382 pixels tall. Smaller screens open maximized within the working area. Controls and events remain in the standard Designer files; flags and branding are local resources.
