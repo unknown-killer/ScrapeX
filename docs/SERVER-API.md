@@ -4,15 +4,15 @@
 
 ## Quick start
 
-ScrapeX 1.2.0 supports desktop hosting and an independent Windows service. The steps below describe desktop mode, which stops when the app closes. For automatic startup after reboot and unattended collection/checking, use the bilingual [Windows service guide](WINDOWS-SERVICE.md).
+ScrapeX 1.3.0 supports desktop hosting and an independent Windows service. The steps below describe desktop mode, which stops when the app closes. For automatic startup after reboot and unattended collection/checking, use the bilingual [Windows service guide](WINDOWS-SERVICE.md).
 
 1. Configure sources, HTTP/HTTPS targets, parallelism and stage timeout in the desktop workspace.
 2. Open **Server API**. Default port: `8088`; default binding: `127.0.0.1` only.
 3. Leave **Public list** unchecked to require an API key. **Copy API key** copies the masked key for your client. Keys are encrypted on disk with Windows DPAPI for the current Windows account.
 4. Optionally enable automatic collection and checking. The first cycle starts immediately; subsequent cycles start the configured interval after the previous cycle finishes. Range: 0.25–168 hours.
 5. Set maximum result age (0.25–720 hours, default 24). A proxy older than that is excluded from responses even if no new run has succeeded.
-6. Click **Save & start API**. Use **Refresh now** for a manual cycle, **Cancel refresh** to stop a cycle, or **Publish desktop results** to publish previously checked working rows.
-7. Use **Build your link** to choose type, country, HTTPS status, format and page size. **Monitoring** shows the published inventory, current cycle, country flags, protocol totals and API traffic.
+6. Click **Start desktop API**. Use **Refresh now** for a manual cycle, **Cancel refresh** to stop a cycle, or **Publish desktop results** to publish previously checked working rows.
+7. Use **Build your link** to choose type, country, HTTPS status, format and page size. **Monitoring → Desktop instance** shows the published inventory, current cycle, country flags, protocol totals and API traffic.
 
 Stop and restart the server to apply connection, schedule, source or checker-setting changes. Link filters can be edited while it is running. A refresh waits for a manual desktop collection/check to finish; network check workloads do not overlap. Country resolution continues in the background, with up to two minutes to drain remaining lookups at the end. Unknown countries remain `ZZ` and are still included when no country filter is used.
 
@@ -103,7 +103,7 @@ The API admits up to 32 simultaneous requests and 120 requests/second globally. 
 
 ## راهنمای فارسی سرور و API
 
-نسخهٔ ۱.۲.۰ هم اجرای داخل برنامه و هم سرویس مستقل ویندوز را پشتیبانی می‌کند. مراحل زیر مربوط به حالت دسکتاپ است که با بستن برنامه متوقف می‌شود. برای اجرای خودکار بعد از ری‌استارت و اسکرپ و چک بدون ورود کاربر، [راهنمای سرویس ویندوز](WINDOWS-SERVICE.md) را دنبال کنید.
+نسخهٔ ۱.۳.۰ هم اجرای داخل برنامه و هم سرویس مستقل ویندوز را پشتیبانی می‌کند. مراحل زیر مربوط به حالت دسکتاپ است که با بستن برنامه متوقف می‌شود. برای اجرای خودکار بعد از ری‌استارت و اسکرپ و چک بدون ورود کاربر، [راهنمای سرویس ویندوز](WINDOWS-SERVICE.md) را دنبال کنید.
 
 ### شروع کار
 
@@ -115,7 +115,7 @@ The API admits up to 32 simultaneous requests and 120 requests/second globally. 
 
 ۴. جمع‌آوری خودکار را فعال و فاصلهٔ اجرا را از ۰٫۲۵ تا ۱۶۸ ساعت تعیین کنید. دور اول بلافاصله شروع می‌شود و فاصلهٔ دور بعد از پایان دور قبلی محاسبه می‌شود. حداکثر عمر نتیجه بین ۰٫۲۵ تا ۷۲۰ ساعت است؛ پیش‌فرض ۲۴ ساعت. نتایج قدیمی‌تر از این زمان از پاسخ API کنار گذاشته می‌شوند.
 
-۵. **Save & start API** را بزنید. **Refresh now** یک دور تازه شروع می‌کند، **Cancel refresh** دور فعلی را لغو می‌کند و **Publish desktop results** نتایج فعالِ بررسی‌شدهٔ دسکتاپ را منتشر می‌کند.
+۵. **Start desktop API** را بزنید. **Refresh now** یک دور تازه شروع می‌کند، **Cancel refresh** دور فعلی را لغو می‌کند و **Publish desktop results** نتایج فعالِ بررسی‌شدهٔ دسکتاپ را منتشر می‌کند.
 
 ۶. در **Build your link**، پروتکل، کد کشورها، وضعیت HTTPS، قالب و اندازهٔ صفحه را انتخاب کنید. تب **Monitoring** تعدادها، پرچم کشورها، پروتکل‌ها، ترافیک API و پیشرفت دور فعلی را نشان می‌دهد.
 
@@ -159,3 +159,7 @@ The API admits up to 32 simultaneous requests and 120 requests/second globally. 
 حد سرور ۳۲ درخواست هم‌زمان و ۱۲۰ درخواست در ثانیه به‌صورت مجموع است. ترافیک اضافه پاسخ ۴۲۹ با Retry-After: 1 می‌گیرد و مهلت هر پاسخ ۱۵ ثانیه است. وضعیت‌های ۴۰۱، ۴۰۴، ۴۰۵، ۴۱۴ و ۵۰۰ به‌ترتیب مربوط به کلید، مسیر، متد، طول درخواست و خطای پاسخ هستند. سلامت listener به معنی سالم یا تازه بودن تمام پروکسی‌ها نیست.
 
 </div>
+
+Service installation and start/stop are also available directly in Server API. Monitoring defaults to Windows service and reads its local telemetry; explicitly select Desktop instance for the in-app server. See [Windows service](WINDOWS-SERVICE.md).
+
+نصب و شروع و توقف سرویس مستقیماً در Server API انجام می‌شود. مانیتورینگ پیش‌فرض آمار سرویس ویندوز را می‌گیرد؛ برای سرور داخل برنامه، Desktop instance را جداگانه انتخاب کنید. [راهنمای سرویس](WINDOWS-SERVICE.md).

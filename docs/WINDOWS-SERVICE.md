@@ -1,118 +1,117 @@
 # ScrapeX Windows service
 
-[English](#install) · [فارسی](#persian)
+[English](#install-from-the-app) · [فارسی](#persian)
 
-ScrapeX 1.2.0 can run its API and scheduled scraper/checker independently of the desktop. The `ScrapeXServer` service starts automatically after Windows boots, runs as **LocalService**, and has restart recovery configured for unexpected process failures. No interactive sign-in is needed after installation.
+ScrapeX 1.3.0 runs its API and scheduled scraper/checker independently of the desktop. Install and control the Windows service directly in **Server API**; no PowerShell window or command is required for normal setup.
 
-![Windows service profile export](windows-service.png)
+![Service controls](service-controls-v1.3.png)
+*Rendered application controls. Service management remains editable in WinForms Designer.*
 
-## Install
+## Install from the app
 
-Use Windows with .NET Framework 4.8 and Windows PowerShell 5.1. The desktop configuration tool needs a graphical Windows session; Windows Server with Desktop Experience is the supported setup path.
+1. Extract the **entire** portable archive on the destination Windows server with .NET Framework 4.8. Run `ScrapeX.exe`. Use Windows Server with Desktop Experience for the configuration UI.
+2. Configure sources, HTTP/HTTPS targets, parallelism and timeout. In **Server API**, set the port, API key/public access, refresh interval and maximum result age.
+3. Click **Install / update service** and approve the normal Windows administrator (UAC) prompt. The current settings are applied; automatic refresh is enabled for the service. If the desktop API uses the same port, it is stopped first.
+4. Wait for the service action to finish. The status line distinguishes the Windows service state from live telemetry availability. Open **Monitoring → Windows service** for its live statistics.
+5. Close the desktop whenever you want. The service continues, and starts automatically after a later Windows boot without interactive sign-in.
 
-1. Extract the **entire** portable archive on the server. Open `ScrapeX.exe` there and configure sources, HTTP/HTTPS targets, parallelism and timeout.
-2. In **Server API**, choose the port, access key, refresh interval and maximum result age. Export with **Export Windows service profile**. Service exports always enable automatic refresh, even if the desktop schedule checkbox is off.
-3. Stop the desktop API if it uses the same port. You can now close the app.
-4. Open **Windows PowerShell as administrator**, using the **same Windows account on the same computer** that exported the profile. From the extracted `ScrapeX` directory run:
+The installer copies the executable and dependencies to `%ProgramFiles%\ScrapeX\Service`, reserves its HTTP listener URL for **LocalService**, configures delayed automatic start and restart recovery, and starts the service. It verifies service telemetry readiness before reporting success. An existing unrelated service or URL reservation is not overwritten. The running service uses LocalService, not an administrator account.
+
+Settings, results, checkpoint and logs live in `%ProgramData%\ScrapeX\Service`. Profile keys are encrypted with Windows DPAPI. Installation uses a short-lived encrypted profile in a restricted staging folder and removes it when the action returns. The service data folder permits SYSTEM, administrators, the installing identity and LocalService. The application does not automatically open firewall ports; for external clients configure a firewall rule or HTTPS reverse proxy as described in [Server & API](SERVER-API.md).
+
+## Start, stop, restart and update
+
+- **Start service** starts a stopped installation and verifies readiness.
+- **Stop service** stops the independent server, retaining settings, publication, schedule and check progress.
+- **Restart service** stops and starts it again with the installed configuration.
+- **Install / update service** applies the current UI settings and installs the binaries from the extracted release you are running. Use this button when upgrading from 1.2.0 to enable the new service-monitoring connection. Do not run updates from the installed service directory.
+
+These actions request Windows administrator approval. Cancelling UAC does not launch the service helper. If installation had already stopped a desktop listener to free the port, that desktop listener remains stopped. Buttons are disabled while an operation is active; the main window stays responsive and waits for the operation before closing. The service must be installed on this computer; these buttons do not administer a remote Windows machine.
+
+The **Start desktop API**, **Stop desktop API**, **Refresh now** and **Publish desktop results** buttons still control the desktop instance. Its data and publication remain separate from the service. Avoid running the two checkers at once on a small server; their workload limits belong to separate processes.
+
+## Live service monitoring
+
+![Service monitoring preview](service-monitor-v1.3.png)
+*Illustrative test fixture rendered by the real controls; the displayed counts demonstrate the layout, not live public proxy availability.*
+
+**Monitoring** defaults to **Windows service**. Select **Desktop instance** explicitly when you want to inspect the server hosted inside the app.
+
+The service view shows the real service state, available and HTTPS totals, country flags and protocol breakdowns, request traffic, active check progress, next refresh and recent history. Data is read from a local named pipe secured for the Windows account that installed/updated the service, administrators and LocalService. Network logons are denied; no API key or public API port is needed for local monitoring. Another Windows account can obtain monitoring access by applying **Install / update service** from that account with administrator approval.
+
+A stopped service or failed connection clears old cards, progress and country/history rows. It never substitutes desktop counts. A running service without telemetry is shown as unavailable, not healthy. Update older service binaries with the app button if that state persists. Logs are in `%ProgramData%\ScrapeX\Service\service.log`. Remote monitoring remains available through the authenticated `/api/v1/stats` HTTP endpoint.
+
+## Recovery and stored data
+
+- The first cycle starts immediately. Successful cycles wait the configured interval after completion; service refreshes do not overlap.
+- An idle restart preserves the next run. An interrupted check resumes its saved queue and working results immediately. Interrupted source collection starts again.
+- Check journals flush every second or 64 results. Recent unflushed checks may repeat after a forced shutdown; incomplete lines are ignored and those endpoints are checked again.
+- Expired checkpoints or changed source/probe settings trigger fresh collection. Restarting never changes a proxy's original check time.
+- A previous complete publication remains available until its age limit. Failed cycles retry within five minutes, or the configured interval if shorter.
+- SCM recovery restarts unexpected process failures after 5, 15 and then 60 seconds. A deliberate Stop stays stopped until Start or the next automatic boot.
+- The next run and last 50 refreshes persist; request counters reset with the process. Logs rotate around 5 MB, retaining one previous log. Cycle exports under `Server results` are retained; manage disk space on long-running servers.
+
+## Advanced script path
+
+The optional `tools/Manage-Service.ps1` remains available for scripted deployments and uninstall. **Export Windows service profile** creates a CurrentUser-encrypted profile for this path; export on the destination machine, then use elevated Windows PowerShell 5.1 under the same account. Normal GUI installation does not require this export or PowerShell.
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\Manage-Service.ps1 -Action Install -ProfilePath "C:\path\scrapex-service-profile.json"
-```
-
-The installer copies the application to `%ProgramFiles%\ScrapeX\Service`, creates a restricted data folder at `%ProgramData%\ScrapeX\Service`, reserves the chosen HTTP listener URL for LocalService, configures delayed automatic start and restart recovery, starts the service and checks its API. It refuses to replace an unrelated service or URL reservation. A successful install prints **ScrapeX service is ready**.
-
-For a source build, add `-AppDirectory .\ScrapeX\bin\Release`. Run the installer from the extracted release or source checkout, not from the installed service directory. Keep the scripts and dependencies together. No firewall rule is opened automatically. For remote access, configure the firewall or an HTTPS reverse proxy as described in [Server & API](SERVER-API.md).
-
-Profiles are encrypted with Windows DPAPI: the export belongs to your Windows account; installation re-encrypts the key for the machine in a folder accessible only to administrators, SYSTEM and LocalService. Export on the destination server. Copying an encrypted export to a different machine/account will not work. The installer needs administrator rights; the running service does not.
-
-## Manage and update
-
-```powershell
-.\tools\Manage-Service.ps1 -Action Status
-.\tools\Manage-Service.ps1 -Action Stop
-.\tools\Manage-Service.ps1 -Action Start
-.\tools\Manage-Service.ps1 -Action Restart
-# From a newly extracted release; keep existing configuration and results:
-.\tools\Manage-Service.ps1 -Action Install
-# Apply a newly exported profile:
 .\tools\Manage-Service.ps1 -Action Install -ProfilePath "C:\path\scrapex-service-profile.json"
-# Remove service registration and URL reservations created by this installer:
+.\tools\Manage-Service.ps1 -Action Status
 .\tools\Manage-Service.ps1 -Action Uninstall
 ```
 
-Except for Status, commands require elevation. Uninstall retains binaries, settings and results; it does not delete your data. Old URL reservations created by this installer are retained during updates and removed on uninstall. Manage the same service in `services.msc` under **ScrapeX Proxy Feed** if preferred.
+For a source build, pass `-AppDirectory .\ScrapeX\bin\Release` to the script. Uninstall removes service registration and URL reservations created by the installers; binaries, settings and results remain. No user data is deleted.
 
-The desktop **Save & start API**, **Stop server**, **Refresh now** and **Monitoring** controls manage the desktop instance only. They do not stop, reconfigure or show the separate Windows service. Use its API for live service statistics:
+## Verification
 
-```powershell
-$headers = @{ 'X-Api-Key' = 'YOUR_API_KEY' }
-Invoke-RestMethod 'http://127.0.0.1:8088/api/v1/stats' -Headers $headers
-Invoke-RestMethod 'http://127.0.0.1:8088/api/v1/proxies?format=json&type=socks5&country=US,DE' -Headers $headers
-Get-Content "$env:ProgramData\ScrapeX\Service\service.log" -Tail 40 -Wait
-```
+Automated coverage includes profile encryption, checkpoint and schedule recovery, forced termination/restart of a headless host, telemetry transport, disconnected clients, cancellation, instance selection, stale-data clearing, service-button states and Windows argument quoting. Tests render the actual WinForms controls without desktop screen capture. The non-elevated development session did not exercise the real UAC/SCM installation, LocalService login or a complete Windows reboot. Verify those on the destination server after installation, including closing the app and checking the service after a planned reboot.
 
-Service statistics include `refresh.mode = windows-service`, current phase, checked/working counts, next run and the last 50 refreshes. Request counters reset when the process restarts; schedule and history persist. API filters, authentication and expiry rules are identical in desktop and service modes. The service has its own publication, so desktop results are not automatically imported.
-
-## Recovery behavior
-
-- First installation starts a collection/check cycle immediately. Later successful cycles wait the configured interval **after completion**, with no overlapping refreshes.
-- An idle restart preserves the next due time. An interrupted check resumes immediately using its saved candidate list, completed endpoints and working results. If interruption occurs during collection, collection starts again.
-- The journal flushes every second or 64 results. An abrupt power/process loss may repeat recent checks. Incomplete journal lines are ignored and those endpoints are checked again. There is no promise of zero repeated work.
-- A checkpoint older than the configured maximum result age, or made with different sources/probe settings, is replaced by fresh collection. Expired results never become fresh merely because the host restarted.
-- The previous complete publication remains available within its age limit while the next cycle runs. Failed refreshes retry within five minutes (or the configured interval if shorter), which also handles an unavailable network after boot.
-- Windows recovery restarts a failed service after 5 seconds, then 15 seconds, then 60 seconds. A deliberate Stop stays stopped until Start or the next automatic boot. Fatal startup failures are recorded in `service.log`.
-
-Settings, publication, checkpoint, schedule, country cache and cycle exports live in `%ProgramData%\ScrapeX\Service`. Logs rotate at approximately 5 MB with one previous log. Cycle exports under `Server results` are retained; monitor disk usage on long-running servers. A second host cannot open the same data folder concurrently.
-
-### Verification
-
-Automated tests cover encrypted profiles, corrupted journal recovery, remaining-work restoration, persistent schedule/history, API restart, exclusive data ownership and forced termination/restart of a separate headless host. The development session was not elevated, so actual SCM installation, LocalService permissions and a full Windows reboot were not exercised there. After installation on your server, check API readiness, close the desktop, then verify `/health` and authenticated `/api/v1/stats` again after a planned reboot.
-
-Windows mechanisms: [service startup configuration](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/sc-create), [HTTP URL reservations](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-http).
+Windows reference: [service configuration](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/sc-create) and [HTTP URL reservations](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netsh-http).
 
 <a id="persian"></a>
 
-## فارسی — سرویس ویندوز
+## فارسی — مدیریت سرویس از داخل برنامه
 
-نسخهٔ ۱.۲.۰ می‌تواند API و اسکرپ و چک زمان‌بندی‌شده را بدون بازبودن برنامه اجرا کند. سرویس `ScrapeXServer` با حساب کم‌دسترسی **LocalService** اجرا می‌شود، پس از بوت ویندوز خودکار شروع می‌شود و برای خطای غیرمنتظرهٔ پردازش، راه‌اندازی مجدد دارد. پس از نصب نیازی به ورود کاربر به ویندوز نیست.
+نسخهٔ ۱.۳.۰ نصب، شروع، توقف و راه‌اندازی مجدد سرویس را با دکمه‌های داخل تب **Server API** انجام می‌دهد؛ برای راه‌اندازی معمول نیازی به بازکردن پاورشل یا نوشتن دستور نیست. API و اسکرپ و چک خودکار بعد از بستن برنامه مستقل اجرا می‌شوند و پس از بوت ویندوز خودکار شروع می‌شوند.
 
-### نصب
+### نصب و به‌روزرسانی
 
-ویندوز، .NET Framework 4.8 و Windows PowerShell 5.1 لازم است. برای تنظیم اولیه با رابط برنامه از ویندوز یا Windows Server دارای Desktop Experience استفاده کنید.
+۱. کل نسخهٔ پرتابل را روی خود سرور مقصد استخراج کنید و `ScrapeX.exe` را اجرا کنید. .NET Framework 4.8 لازم است؛ برای رابط تنظیمات از ویندوز یا Windows Server دارای Desktop Experience استفاده کنید.
 
-۱. تمام فایل‌های نسخهٔ پرتابل را روی خود سرور استخراج کنید. برنامه را باز کنید و منابع، آدرس‌های تست HTTP و HTTPS، تعداد بررسی هم‌زمان و تایم‌اوت را تنظیم کنید.
+۲. منابع، آدرس‌های تست، تعداد بررسی هم‌زمان و تایم‌اوت را تنظیم کنید. در تب **Server API** پورت، دسترسی عمومی یا کلید API، فاصلهٔ اجرای خودکار و حداکثر عمر نتایج را تعیین کنید.
 
-۲. در تب **Server API** پورت، کلید API، فاصلهٔ اجرای خودکار و حداکثر عمر نتایج را تعیین کنید؛ سپس **Export Windows service profile** را بزنید. خروجی سرویس همیشه اجرای خودکار را فعال می‌کند، حتی اگر تیک زمان‌بندی نسخهٔ دسکتاپ خاموش باشد.
+۳. دکمهٔ **Install / update service** را بزنید و پنجرهٔ معمول دسترسی مدیر ویندوز، یعنی UAC، را تأیید کنید. تنظیمات فعلی اعمال می‌شوند و زمان‌بندی سرویس فعال خواهد بود. اگر API دسکتاپ همان پورت را گرفته باشد، ابتدا متوقف می‌شود.
 
-۳. اگر API داخل برنامه روی همان پورت اجراست، آن را متوقف کنید. سپس می‌توانید برنامه را ببندید.
+۴. پایان عملیات را صبر کنید و وضعیت را در همان تب ببینید. سپس در **Monitoring → Windows service** آمار خود سرویس را مشاهده کنید. برای فعال‌شدن مانیتورینگ جدید روی نصب نسخهٔ ۱.۲.۰ نیز یک‌بار **Install / update service** را بزنید.
 
-۴. **Windows PowerShell را با Run as administrator** و همان حسابی که فایل تنظیمات را روی همان سرور صادر کرده باز کنید. از پوشهٔ استخراج‌شدهٔ ScrapeX اجرا کنید:
+۵. حالا می‌توانید برنامه را ببندید. سرویس به کارش ادامه می‌دهد و پس از بوت بعدی ویندوز، بدون ورود کاربر شروع می‌شود.
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\Manage-Service.ps1 -Action Install -ProfilePath "C:\path\scrapex-service-profile.json"
-```
+فایل‌های اجرایی در `%ProgramFiles%\ScrapeX\Service` و داده‌ها در `%ProgramData%\ScrapeX\Service` قرار می‌گیرند. خود سرویس با حساب کم‌دسترسی LocalService اجرا می‌شود. نصب با تأخیر خودکار پس از بوت، بازیابی پس از خطا و رزرو URL انجام می‌شود؛ پس از شروع، آماده‌بودن ارتباط زنده با سرویس هم بررسی می‌شود. سرویس یا رزرو URL نامرتبط بازنویسی نمی‌شود. فایروال خودکار باز نمی‌شود؛ برای دسترسی بیرونی از [راهنمای API](SERVER-API.md) استفاده کنید.
 
-نصاب فایل‌های اجرا را در `%ProgramFiles%\ScrapeX\Service` قرار می‌دهد، پوشهٔ دادهٔ محدودشده را در `%ProgramData%\ScrapeX\Service` می‌سازد، URL را برای LocalService رزرو می‌کند و شروع خودکار با تأخیر و بازیابی پس از خطا را تنظیم می‌کند. سپس سرویس و دسترسی API را بررسی می‌کند. پیام **ScrapeX service is ready** نشانهٔ موفقیت این مرحله است. سرویس یا رزرو URL نامرتبط بازنویسی نمی‌شود.
+کلید API با DPAPI ویندوز رمز می‌شود. فایل موقت نصب رمز‌شده و محدودشده است و پس از پایان عملیات پاک می‌شود. دسترسی پوشهٔ داده برای SYSTEM، مدیران، هویت نصب‌کننده و LocalService تنظیم می‌شود.
 
-برای نسخهٔ ساخته‌شده از سورس، گزینهٔ `-AppDirectory .\ScrapeX\bin\Release` را اضافه کنید. نصاب را از نسخهٔ استخراج‌شده یا سورس اجرا کنید، نه پوشهٔ نصب سرویس. فایل اسکریپت و وابستگی‌ها را کنار هم نگه دارید. پورت فایروال خودکار باز نمی‌شود؛ تنظیم دسترسی بیرونی و reverse proxy با HTTPS در [راهنمای API](SERVER-API.md) آمده است.
+### دکمه‌ها و مانیتورینگ
 
-کلید API در فایل تنظیمات با DPAPI ویندوز رمز می‌شود. خروجی اولیه متعلق به حساب ویندوز شماست؛ نصاب آن را برای اجرای سرویس روی همان ماشین دوباره رمز می‌کند. پوشهٔ داده فقط برای مدیران، SYSTEM و LocalService قابل دسترسی است. فایل را روی سرور مقصد صادر کنید؛ انتقال خروجی رمز‌شده به کامپیوتر یا حساب دیگر کار نمی‌کند. نصب دسترسی مدیر لازم دارد، اما خود سرویس با حساب مدیر اجرا نمی‌شود.
+- **Start service:** شروع سرویس متوقف‌شده و بررسی آمادگی آن.
+- **Stop service:** توقف سرویس با حفظ تنظیمات، فهرست منتشرشده، زمان‌بندی و پیشرفت بررسی.
+- **Restart service:** شروع مجدد با تنظیمات نصب‌شده.
+- **Install / update service:** نصب یا اعمال تنظیمات فعلی و فایل‌های نسخهٔ جدید. آن را از نسخهٔ استخراج‌شده اجرا کنید، نه از پوشهٔ نصب سرویس.
 
-### مدیریت و به‌روزرسانی
+عملیات دسترسی مدیر می‌خواهد و دکمه‌ها تا پایان آن قفل می‌شوند. پنجرهٔ اصلی پاسخ‌گو می‌ماند و برای بسته‌شدن، منتظر پایان عملیات خواهد بود. لغو UAC باعث اجرا نشدن ابزار مدیریتی می‌شود؛ اگر پیش‌تر API دسکتاپ برای آزاد شدن پورت متوقف شده باشد، متوقف می‌ماند. این دکمه‌ها سرویس همین کامپیوتر را مدیریت می‌کنند، نه سرور ویندوزی دیگری را.
 
-دستورهای بخش **Manage and update** همین صفحه برای هر دو زبان یکسان‌اند: `Status` وضعیت را نشان می‌دهد؛ `Stop`، `Start` و `Restart` اجرای سرویس را مدیریت می‌کنند؛ `Install` از پوشهٔ نسخهٔ جدید، برنامه را با حفظ تنظیمات و نتایج به‌روز می‌کند. برای تغییر تنظیمات، فایل جدید را با `-ProfilePath` بدهید. `Uninstall` ثبت سرویس و رزروهای URL ساخته‌شده توسط نصاب را حذف می‌کند، اما فایل‌ها و نتایج را نگه می‌دارد. رزروهای قدیمی هنگام به‌روزرسانی حفظ می‌شوند و هنگام حذف سرویس پاک می‌شوند. همهٔ دستورها به‌جز Status دسترسی مدیر لازم دارند. در `services.msc` نیز نام سرویس **ScrapeX Proxy Feed** است.
+مانیتورینگ پیش‌فرض روی **Windows service** است و آمار واقعی سرویس، تعداد پروکسی‌ها و HTTPS، پرچم و تفکیک کشورها و پروتکل‌ها، ترافیک API، پیشرفت چک، اجرای بعدی و تاریخچه را می‌گیرد. برای نمونهٔ داخل برنامه، **Desktop instance** را جداگانه انتخاب کنید. با توقف یا قطع ارتباط، آمار قدیمی پاک می‌شود و آمار دسکتاپ جای آن نمی‌آید.
 
-دکمه‌های شروع و توقف API، اجرای دستی و تب Monitoring داخل برنامه فقط نمونهٔ دسکتاپ را مدیریت می‌کنند و وضعیت سرویس مستقل را نشان نمی‌دهند. برای سرویس از `/api/v1/stats` با کلید API استفاده کنید؛ نمونهٔ PowerShell در بخش انگلیسی آمده است. فیلد `refresh.mode` مقدار `windows-service` دارد و مرحلهٔ فعلی، تعداد بررسی‌شده و سالم، اجرای بعدی و تاریخچهٔ ۵۰ چرخه را نشان می‌دهد. شمارندهٔ درخواست‌ها پس از شروع مجدد صفر می‌شود؛ زمان‌بندی و تاریخچه باقی می‌مانند. فیلترها، احراز هویت و انقضای نتایج در هر دو حالت یکسان‌اند. داده‌های سرویس مستقل‌اند و نتایج دسکتاپ خودکار وارد آن نمی‌شوند.
+ارتباط مانیتورینگ محلی و محدود به حساب نصب‌کننده، مدیران و LocalService است؛ ورود شبکه‌ای به این مسیر مجاز نیست و برای آن به کلید API یا پورت عمومی نیاز ندارید. برای دسترسی از حساب ویندوز دیگر، با همان حساب و تأیید مدیر، **Install / update service** را اجرا کنید. سرویس قدیمیِ بدون ارتباط زنده باید به‌روز شود. وضعیت Running در ویندوز همراه با قطع مانیتورینگ به‌عنوان اتصال سالم نمایش داده نمی‌شود. لاگ در `service.log` داخل پوشهٔ داده است؛ برای مانیتورینگ از راه دور همچنان `/api/v1/stats` با کلید API وجود دارد.
 
-### ادامهٔ کار پس از قطع و ری‌استارت
+دکمه‌های **Start desktop API**، **Stop desktop API**، **Refresh now** و انتشار نتایج دسکتاپ مربوط به نمونهٔ داخل برنامه‌اند. داده‌های دو نمونه جداست؛ روی سرور کم‌منبع، دو چکر را هم‌زمان اجرا نکنید، چون محدودیت منابع آن‌ها در دو پردازش مستقل اعمال می‌شود.
 
-- نصب اولیه فوراً اسکرپ و چک را شروع می‌کند. فاصلهٔ اجرای بعدی از پایان چرخهٔ موفق محاسبه می‌شود و چرخه‌ها هم‌زمان اجرا نمی‌شوند.
-- اگر سرویس هنگام انتظار متوقف شود، زمان اجرای بعدی حفظ می‌شود. اگر هنگام چک قطع شود، صف و نتایج ذخیره‌شده بازیابی می‌شوند و بررسی باقی‌مانده فوراً ادامه می‌یابد. اسکرپ نیمه‌تمام از ابتدا انجام می‌شود.
-- ثبت پیشرفت هر ثانیه یا هر ۶۴ نتیجه تخلیه می‌شود. قطع ناگهانی ممکن است باعث تکرار بررسی چند نتیجهٔ اخیر شود؛ خطوط ناقص نادیده گرفته می‌شوند و آن پروکسی‌ها دوباره بررسی خواهند شد. تکرار نشدن هیچ بررسی‌ای تضمین نمی‌شود.
-- اگر نقطهٔ بازیابی از حداکثر عمر تنظیم‌شده قدیمی‌تر باشد یا منابع و تنظیمات تست تغییر کنند، اسکرپ تازه انجام می‌شود. ری‌استارت باعث تازه محسوب شدن نتایج قدیمی نمی‌شود.
-- هنگام بررسی جدید، آخرین فهرست کامل تا زمان انقضایش قابل دریافت می‌ماند. چرخهٔ ناموفق حداکثر پنج دقیقه بعد دوباره تلاش می‌کند؛ اگر فاصلهٔ تنظیم‌شده کمتر باشد، همان ملاک است. این رفتار برای آماده‌نبودن شبکه پس از بوت هم کاربرد دارد.
-- بازیابی ویندوز بعد از خطای پردازش با تأخیرهای ۵، ۱۵ و سپس ۶۰ ثانیه تلاش می‌کند. Stop عمدی تا Start یا بوت خودکار بعدی متوقف می‌ماند. خطاهای شروع در `service.log` ثبت می‌شوند.
+### ادامهٔ کار و نگهداری داده‌ها
 
-تنظیمات، فهرست منتشرشده، صف ذخیره‌شده، زمان‌بندی، کش کشور و خروجی چرخه‌ها در `%ProgramData%\ScrapeX\Service` قرار دارند. لاگ با حدود ۵ مگابایت چرخش می‌کند و یک نسخهٔ قبلی حفظ می‌شود. خروجی‌های `Server results` حذف خودکار ندارند؛ فضای دیسک سرور را مدیریت کنید. دو پردازش نمی‌توانند هم‌زمان از همان پوشهٔ داده استفاده کنند.
+اولین چرخه فوری شروع می‌شود و فاصلهٔ بعدی از پایان چرخهٔ موفق حساب می‌شود. زمان اجرای بعدی و تاریخچهٔ ۵۰ چرخه باقی می‌مانند. بررسی قطع‌شده از صف ذخیره‌شده ادامه می‌یابد؛ اسکرپ نیمه‌تمام از ابتدا شروع می‌شود. ثبت پیشرفت هر ثانیه یا ۶۴ نتیجه تخلیه می‌شود و پس از قطع ناگهانی ممکن است بررسی چند نتیجهٔ اخیر تکرار شود. صف منقضی یا ناسازگار با تنظیمات جدید با اسکرپ تازه جایگزین می‌شود.
 
-آزمایش‌های خودکار رمزگذاری، بازیابی فایل ناقص، ادامهٔ صف، حفظ زمان‌بندی و تاریخچه، شروع مجدد API و قطع اجباری و اجرای دوبارهٔ یک پردازش مستقل بدون پنجره را پوشش می‌دهند. نشست توسعه دسترسی مدیر نداشت؛ بنابراین نصب واقعی در SCM، مجوزهای حساب LocalService و ری‌استارت کامل ویندوز در آن آزمایش نشده‌اند. پس از نصب روی سرور، آمادگی API را بررسی کنید و بعد از بستن برنامه و یک ری‌استارت برنامه‌ریزی‌شده، `/health` و `/api/v1/stats` را دوباره امتحان کنید.
+فهرست کامل قبلی تا زمان انقضا قابل دریافت می‌ماند. چرخهٔ ناموفق حداکثر پنج دقیقه بعد دوباره تلاش می‌کند. بازیابی ویندوز پس از خطای غیرمنتظرهٔ پردازش با تأخیرهای ۵، ۱۵ و سپس ۶۰ ثانیه انجام می‌شود. Stop عمدی تا Start یا بوت بعدی متوقف می‌ماند. شمارندهٔ درخواست‌ها با پردازش جدید صفر می‌شود. لاگ حدود ۵ مگابایت چرخش دارد و یک نسخهٔ قبلی حفظ می‌شود؛ خروجی‌های چرخه‌ها حذف خودکار ندارند، بنابراین فضای دیسک را مدیریت کنید.
+
+اسکریپت قدیمی برای استقرار پیشرفته و حذف سرویس باقی مانده است؛ دستورهای بخش **Advanced script path** برای هر دو زبان یکسان‌اند. خروجی دستی تنظیمات باید روی ماشین مقصد و توسط همان حساب اجرای پاورشل صادر شود. برای نصب گرافیکی به خروجی دستی یا پاورشل نیاز نیست. حذف با اسکریپت، فایل‌های برنامه و نتایج را نگه می‌دارد.
+
+آزمون‌ها بازیابی، ارتباط زندهٔ سرویس، قطع کلاینت، لغو ارتباط، انتخاب نمونه، پاک‌شدن آمار قدیمی و وضعیت دکمه‌ها را پوشش می‌دهند. تصاویر رابط از کنترل‌های واقعی با دادهٔ آزمایشی تولید شده‌اند؛ عددهای مانیتورینگ ادعای پروکسی سالم واقعی نیستند. نصب واقعی UAC/SCM، ورود LocalService و ری‌استارت کامل ویندوز در نشست توسعهٔ بدون دسترسی مدیر آزمایش نشده‌اند؛ آن‌ها را پس از نصب روی سرور مقصد بررسی کنید.
