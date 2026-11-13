@@ -25,6 +25,10 @@ foreach ($suite in @('CountryTests','SchedulerTests','ResilienceTests')) {
 if ($LASTEXITCODE -ne 0) { throw 'Catalog test compilation failed.' }
 & .\ScrapeX\bin\Release\CatalogTests.exe | Tee-Object reports\catalog-tests.txt
 if ($LASTEXITCODE -ne 0) { throw 'Catalog/export tests failed.' }
+& $compiler /nologo /out:ScrapeX\bin\Release\ServerTests.exe /r:ScrapeX\bin\Release\ScrapeX.exe /r:ScrapeX\bin\Release\Newtonsoft.Json.dll /r:System.Net.Http.dll tools\ServerTests.cs
+if ($LASTEXITCODE -ne 0) { throw 'Server test compilation failed.' }
+& .\ScrapeX\bin\Release\ServerTests.exe | Tee-Object reports\server-tests.txt
+if ($LASTEXITCODE -ne 0) { throw 'Server/API tests failed.' }
 if ($Live) {
     & $compiler /nologo /out:ScrapeX\bin\Release\LiveSmoke.exe /r:ScrapeX\bin\Release\ScrapeX.exe tools\LiveSmoke.cs
     if ($LASTEXITCODE -ne 0) { throw 'Live test compilation failed.' }

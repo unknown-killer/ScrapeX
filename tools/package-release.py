@@ -1,8 +1,8 @@
-"""Package documentation updates while preserving the verified application binaries.
+"""Package a built application or a documentation-only update, with matching bilingual guides.
 
 README.md is the single source for both languages. Run from the repository root:
   python tools/package-release.py --version 1.0.1 --portable-base PATH_TO_EXISTING_ZIP
-The application assembly version is unchanged for a documentation-only release.
+For an application release, use --app-dir ScrapeX/bin/Release instead of --portable-base.
 """
 import argparse
 import hashlib
@@ -16,7 +16,7 @@ def plain_guide(markdown):
     text = re.sub(r"<img\b[^>]*>", "", markdown)
     text = re.sub(r'<a\s+href="([^"]+)"[^>]*>(.*?)</a>',
                   lambda m: m[2] + " (" + m[1] + ")", text)
-    text = re.sub(r"</?(?:div|p|h1|strong|a)\b[^>]*>", "", text)
+    text = re.sub(r"</?(?:div|p|h1|strong|a|details|summary)\b[^>]*>", "", text)
     text = re.sub(r"!\[([^]]*)\]\([^)]+\)", r"\1", text)
     text = re.sub(r"\[([^]]+)\]\(([^)]+)\)",
                   lambda m: m[1] + " (" + m[2] + ")", text)
@@ -30,7 +30,9 @@ def plain_guide(markdown):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--version", required=True)
-    parser.add_argument("--portable-base", type=Path, required=True)
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--portable-base", type=Path)
+    mode.add_argument("--app-dir", type=Path)
     args = parser.parse_args()
     if not re.fullmatch(r"\d+\.\d+\.\d+", args.version):
         parser.error("Version must have the form X.Y.Z")
@@ -46,17 +48,22 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     portable = output / ("ScrapeX-v" + args.version + "-windows-portable.zip")
     source = output / ("ScrapeX-v" + args.version + "-source.zip")
-    if args.portable_base.resolve() in (portable.resolve(), source.resolve()):
+    if args.portable_base and args.portable_base.resolve() in (portable.resolve(), source.resolve()):
         raise ValueError("Use a separate baseline archive")
-    supplemental = ["docs/USER-GUIDE.txt", "docs/TECHNICAL.md", "docs/screenshot.png",
-                    "ScrapeX/Resources/scrapex-logo.png"]
+    supplemental = [str(p.relative_to(root)).replace("\\", "/") for p in (root / "docs").rglob("*") if p.is_file()]
+    supplemental += ["THIRD-PARTY-NOTICES.md", "ScrapeX/Resources/scrapex-logo.png"]
     replacements = {"ScrapeX/README.md": readme, "ScrapeX/راهنما.txt": guide_bytes}
     replacements.update({"ScrapeX/" + p: (root / p).read_bytes() for p in supplemental})
-    with ZipFile(args.portable_base) as old, ZipFile(portable, "w", ZIP_DEFLATED) as new:
-        for entry in old.infolist():
-            if entry.filename not in replacements:
-                new.writestr(entry, old.read(entry))
-        for name, data in replacements.items():
+    payload = {}
+    if args.app_dir:
+        for name in ("ScrapeX.exe", "ScrapeX.exe.config", "Newtonsoft.Json.dll", "sources.txt"):
+            payload["ScrapeX/" + name] = (args.app_dir / name).read_bytes()
+        assert payload["ScrapeX/sources.txt"] == (root / "ScrapeX/sources.txt").read_bytes()
+    else:
+        with ZipFile(args.portable_base) as old:
+            payload = {n: old.read(n) for n in old.namelist() if n not in replacements}
+    with ZipFile(portable, "w", ZIP_DEFLATED) as new:
+        for name, data in {**payload, **replacements}.items():
             new.writestr(name, data)
     files = subprocess.check_output(["git", "ls-files", "-z"], cwd=root).decode().split("\0")
     files = set(filter(None, files)) | {"docs/USER-GUIDE.txt", "tools/package-release.py"}
@@ -66,20 +73,19 @@ def main():
             package.write(root / name, prefix + name)
         package.writestr(prefix + "راهنما.txt", guide_bytes)
     # Validate package contents, both language copies, and unchanged payloads.
-    with ZipFile(args.portable_base) as old, ZipFile(portable) as new, ZipFile(source) as src:
+    with ZipFile(portable) as new, ZipFile(source) as src:
         assert new.testzip() is None and src.testzip() is None
         assert len(new.namelist()) == len(set(new.namelist()))
         assert len(src.namelist()) == len(set(src.namelist()))
-        for name in old.namelist():
-            if name not in replacements:
-                assert old.read(name) == new.read(name), name
+        for name, data in payload.items():
+            assert data == new.read(name), name
         assert new.read("ScrapeX/README.md") == src.read(prefix + "README.md") == readme
         assert new.read("ScrapeX/راهنما.txt") == src.read(prefix + "راهنما.txt") == guide_bytes
         assert src.read(prefix + "docs/USER-GUIDE.txt") == guide_bytes
     sums = "".join(hashlib.sha256(p.read_bytes()).hexdigest() + "  " + p.name + "\n"
                    for p in (source, portable))
     (output / "SHA256SUMS.txt").write_text(sums, encoding="ascii", newline="\n")
-    print("Verified: bilingual guides match, archive integrity passes, baseline payloads unchanged.")
+    print("Verified: bilingual guides match, archive integrity passes, application payload matches selected build/baseline.")
     print(output)
     print(sums)
 
