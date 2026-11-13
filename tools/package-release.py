@@ -52,6 +52,7 @@ def main():
         raise ValueError("Use a separate baseline archive")
     supplemental = [str(p.relative_to(root)).replace("\\", "/") for p in (root / "docs").rglob("*") if p.is_file()]
     supplemental += ["THIRD-PARTY-NOTICES.md", "ScrapeX/Resources/scrapex-logo.png"]
+    supplemental += ["tools/Manage-Service.ps1"]
     replacements = {"ScrapeX/README.md": readme, "ScrapeX/راهنما.txt": guide_bytes}
     replacements.update({"ScrapeX/" + p: (root / p).read_bytes() for p in supplemental})
     payload = {}

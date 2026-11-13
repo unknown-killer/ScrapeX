@@ -29,6 +29,13 @@ if ($LASTEXITCODE -ne 0) { throw 'Catalog/export tests failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'Server test compilation failed.' }
 & .\ScrapeX\bin\Release\ServerTests.exe | Tee-Object reports\server-tests.txt
 if ($LASTEXITCODE -ne 0) { throw 'Server/API tests failed.' }
+& $compiler /nologo /out:ScrapeX\bin\Release\ServiceTests.exe /r:ScrapeX\bin\Release\ScrapeX.exe /r:ScrapeX\bin\Release\Newtonsoft.Json.dll /r:System.Net.Http.dll tools\ServiceTests.cs
+if ($LASTEXITCODE -ne 0) { throw 'Service test compilation failed.' }
+& .\ScrapeX\bin\Release\ServiceTests.exe | Tee-Object reports\service-tests.txt
+if ($LASTEXITCODE -ne 0) { throw 'Service tests failed.' }
+$parseErrors = $null
+$null = [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'Manage-Service.ps1'), [ref]$null, [ref]$parseErrors)
+if ($parseErrors.Count) { throw ($parseErrors | Out-String) }
 if ($Live) {
     & $compiler /nologo /out:ScrapeX\bin\Release\LiveSmoke.exe /r:ScrapeX\bin\Release\ScrapeX.exe tools\LiveSmoke.cs
     if ($LASTEXITCODE -ne 0) { throw 'Live test compilation failed.' }
