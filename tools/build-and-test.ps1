@@ -33,6 +33,10 @@ if ($LASTEXITCODE -ne 0) { throw 'Server/API tests failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'Service test compilation failed.' }
 & .\ScrapeX\bin\Release\ServiceTests.exe | Tee-Object reports\service-tests.txt
 if ($LASTEXITCODE -ne 0) { throw 'Service tests failed.' }
+& $compiler /nologo /out:ScrapeX\bin\Release\ServiceUiTests.exe /r:ScrapeX\bin\Release\ScrapeX.exe /r:ScrapeX\bin\Release\Newtonsoft.Json.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll tools\ServiceUiTests.cs
+if ($LASTEXITCODE -ne 0) { throw 'Service UI test compilation failed.' }
+& .\ScrapeX\bin\Release\ServiceUiTests.exe reports | Tee-Object reports\service-ui-tests.txt
+if ($LASTEXITCODE -ne 0) { throw 'Service UI tests failed.' }
 $parseErrors = $null
 $null = [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'Manage-Service.ps1'), [ref]$null, [ref]$parseErrors)
 if ($parseErrors.Count) { throw ($parseErrors | Out-String) }
