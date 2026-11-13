@@ -1,4 +1,4 @@
-namespace ScrapeX
+﻿namespace ScrapeX
 {
     partial class MonitorControl
     {
@@ -49,10 +49,11 @@ namespace ScrapeX
             this.workingColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.durationColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.detailColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.target = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             this.heading.Name = "heading";
             this.heading.Location = new System.Drawing.Point(24, 18);
-            this.heading.Size = new System.Drawing.Size(900, 38);
+            this.heading.Size = new System.Drawing.Size(690, 38);
             this.heading.Font = new System.Drawing.Font("Segoe UI", 23F);
             this.heading.ForeColor = System.Drawing.Color.FromArgb(236, 244, 255);
             this.heading.BackColor = System.Drawing.Color.Transparent;
@@ -67,7 +68,7 @@ namespace ScrapeX
             this.intro.ForeColor = System.Drawing.Color.FromArgb(145, 165, 190);
             this.intro.BackColor = System.Drawing.Color.Transparent;
             this.intro.TabIndex = 2;
-            this.intro.Text = "Live publication totals, country coverage, request traffic and refresh history.";
+            this.intro.Text = "Select the Windows service or desktop instance. Statistics always belong to the selected host.";
             this.Controls.Add(this.intro);
             this.availableCard.Name = "availableCard";
             this.availableCard.Location = new System.Drawing.Point(24, 110);
@@ -397,6 +398,18 @@ namespace ScrapeX
             this.summaryCards.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
             this.summaryCards.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
             this.Controls.Add(this.summaryCards);
+            this.target.Name = "target";
+            this.target.Location = new System.Drawing.Point(750, 25);
+            this.target.Size = new System.Drawing.Size(260, 30);
+            this.target.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            this.target.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.target.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.target.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.target.ForeColor = System.Drawing.Color.FromArgb(236, 244, 255);
+            this.target.BackColor = System.Drawing.Color.FromArgb(35, 49, 68);
+            this.target.Items.AddRange(new object[] { "Windows service", "Desktop instance" });
+            this.target.SelectedIndexChanged += new System.EventHandler(this.TargetSelectionChanged);
+            this.Controls.Add(this.target);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.BackColor = System.Drawing.Color.FromArgb(12, 18, 29);
@@ -409,6 +422,7 @@ namespace ScrapeX
             this.ResumeLayout(false);
         }
         private System.Windows.Forms.TableLayoutPanel summaryCards;
+        private System.Windows.Forms.ComboBox target;
         private System.Windows.Forms.Label heading;
         private System.Windows.Forms.Label intro;
         private System.Windows.Forms.Panel availableCard;

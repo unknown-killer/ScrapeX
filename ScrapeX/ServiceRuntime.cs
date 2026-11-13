@@ -12,10 +12,11 @@ namespace ScrapeX
         private ProxyApiServer api;
         private RefreshCoordinator coordinator;
         private ServerRefreshPipeline pipeline;
+        private ServiceMonitor monitor;
         private readonly object logGate = new object();
         private Task stopping;
         public static string DefaultFolder { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "ScrapeX", "Service"); } }
-        public bool IsHealthy { get { return api?.IsHealthy == true && coordinator?.IsHealthy == true; } }
+        public bool IsHealthy { get { return api?.IsHealthy == true && coordinator?.IsHealthy == true && monitor?.IsHealthy == true; } }
         public ServiceRuntime(string folder) { this.folder = Path.GetFullPath(folder); }
         public void Log(string message)
         {
@@ -48,6 +49,7 @@ namespace ScrapeX
                     checkedCount = pipeline.Checked, working = pipeline.Working, nextUtc = coordinator.NextUtc, history = coordinator.History });
                 api.Diagnostic += Log; api.Start();
                 coordinator.Start(true, TimeSpan.FromHours(profile.Server.IntervalHours));
+                monitor = new ServiceMonitor(api.Statistics, profile.MonitorUserSid); monitor.Start();
                 Log("Service ready on " + profile.Server.Prefix + "; refresh interval " + profile.Server.IntervalHours + " hours.");
             }
             catch { StopAsync().GetAwaiter().GetResult(); throw; }
@@ -58,8 +60,8 @@ namespace ScrapeX
         }
         private async Task StopCoreAsync()
         {
-            try { await Task.WhenAll(api != null ? api.StopAsync() : Task.CompletedTask, coordinator != null ? coordinator.StopAsync() : Task.CompletedTask).ConfigureAwait(false); }
-            finally { lease?.Dispose(); lease = null; Log("Service stopped; publication, schedule and unfinished check retained."); }
+            try { await Task.WhenAll(api != null ? api.StopAsync() : Task.CompletedTask, coordinator != null ? coordinator.StopAsync() : Task.CompletedTask, monitor != null ? monitor.StopAsync() : Task.CompletedTask).ConfigureAwait(false); }
+            finally { monitor?.Dispose(); lease?.Dispose(); lease = null; Log("Service stopped; publication, schedule and unfinished check retained."); }
         }
     }
 }

@@ -95,9 +95,9 @@ namespace ScrapeX
             var rows = new ProxyQuery { Https = "all", MaxAgeHours = settings.MaxAgeHours }.Filter(snapshot, DateTime.UtcNow);
             return new { snapshot.Revision, snapshot.PublishedUtc, available = rows.Length, expired = snapshot.Proxies.Length - rows.Length,
                 https = rows.Count(p => p.Https), httpOnly = rows.Count(p => !p.Https && p.Http),
-                countries = rows.GroupBy(p => p.CountryCode ?? "ZZ").Select(g => new { code = g.Key, name = g.First().Country, count = g.Count() }).OrderByDescending(g => g.count).ToArray(),
+                countries = rows.GroupBy(p => p.CountryCode ?? "ZZ").Select(g => new { code = g.Key, name = g.First().Country, count = g.Count(), https = g.Count(p => p.Https), http = g.Count(p => p.Protocol == "http"), socks4 = g.Count(p => p.Protocol == "socks4"), socks5 = g.Count(p => p.Protocol == "socks5") }).OrderByDescending(g => g.count).ToArray(),
                 protocols = rows.GroupBy(p => p.Protocol).Select(g => new { type = g.Key, count = g.Count() }).OrderBy(g => g.type).ToArray(),
-                requests = RequestCount, rejected = DeniedCount, errors = ErrorCount, bytesSent = BytesSent, uptimeSeconds = (long)UptimeSeconds, refresh = refreshStatus?.Invoke() };
+                requests = RequestCount, rejected = DeniedCount, errors = ErrorCount, active = ActiveRequests, bytesSent = BytesSent, uptimeSeconds = (long)UptimeSeconds, refresh = refreshStatus?.Invoke() };
         }
         private async Task HandleAsync(HttpListenerContext context)
         {

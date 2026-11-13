@@ -15,6 +15,10 @@ namespace ScrapeX
         private ServerRefreshPipeline serverPipeline;
         private bool serverStopping, serverClosePending;
         private DateTime nextMonitorUpdate;
+        private bool serviceActionBusy, servicePollBusy;
+        private string serviceState = "Checking…", serviceDetail;
+        private DateTime nextServicePoll;
+        private readonly System.Threading.CancellationTokenSource serviceMonitorStop = new System.Threading.CancellationTokenSource();
         private void InitializeServer()
         {
             try { serverSettings = ServerSettings.Load(Path.Combine(UserFolder, "server-settings.json")); }
@@ -28,21 +32,77 @@ namespace ScrapeX
             serverControl.CancelRequested += (s, e) => refreshCoordinator?.CancelCurrent();
             serverControl.PublishRequested += PublishDesktopResults;
             serverControl.ExportServiceRequested += ExportService;
+            serverControl.ServiceActionRequested += ManageService;
+            monitorControl.TargetChanged += (s, e) => { nextMonitorUpdate = nextServicePoll = DateTime.MinValue; UpdateServerState(); };
+            FormClosed += (s, e) => { serviceMonitorStop.Cancel(); };
+        }
+        private ServiceProfile CurrentServiceProfile()
+        {
+            var settings = serverControl.ReadSettings(); settings.ScheduleEnabled = true;
+            var profile = new ServiceProfile { Server = settings, Sources = sourcesBox.Text,
+                HttpTarget = targetBox.Text.Trim(), HttpsTarget = httpsTargetBox.Text.Trim(),
+                Parallelism = (int)workers.Value, TimeoutMs = (int)timeoutBox.Value, RetryAlternate = retryAlternateBox.Checked,
+                MonitorUserSid = System.Security.Principal.WindowsIdentity.GetCurrent().User.Value };
+            profile.Validate(); return profile;
+        }
+        private async void ManageService(string action)
+        {
+            if (serviceActionBusy) return;
+            serviceActionBusy = true; serviceDetail = "Waiting for Windows administrator approval…";
+            serverControl.SetServiceState(serviceState, true, serviceDetail);
+            try
+            {
+                var profile = action == "Install" ? CurrentServiceProfile() : null;
+                if (profile != null && apiServer != null && serverSettings.Port == profile.Server.Port) await StopServerAsync();
+                bool success = await ServiceManager.ElevateAsync(action, profile);
+                if (IsDisposed || serviceMonitorStop.IsCancellationRequested) return;
+                if (success && profile != null) { profile.Server.Save(Path.Combine(UserFolder, "server-settings.json")); serverSettings = profile.Server; }
+                serviceDetail = success ? action + " completed; checking live status…" : "Action failed. See the setup error; previous data is retained.";
+                Log("Windows service: " + serviceDetail);
+                if (success && action != "Stop") monitorControl.SelectService();
+            }
+            catch (Exception ex) { if (!IsDisposed) { serviceDetail = ex.Message; Notice(ex.Message); } }
+            finally { serviceActionBusy = false; nextServicePoll = nextMonitorUpdate = DateTime.MinValue; if (!IsDisposed) UpdateServerState(); }
+        }
+        private async void PollService()
+        {
+            if (servicePollBusy || serviceActionBusy || serviceMonitorStop.IsCancellationRequested || DateTime.UtcNow < nextServicePoll) return;
+            servicePollBusy = true; nextServicePoll = DateTime.UtcNow.AddSeconds(3);
+            try
+            {
+                string state = await Task.Run(() => ServiceManager.Status());
+                Newtonsoft.Json.Linq.JObject snapshot = null; string detail = null;
+                if (state == "Running")
+                {
+                    try { snapshot = await ServiceMonitor.ReadAsync(serviceMonitorStop.Token); }
+                    catch (Exception ex) { detail = "Statistics unavailable. Install / update service from this Windows account. " + ex.Message; }
+                }
+                if (IsDisposed || serviceMonitorStop.IsCancellationRequested || serviceActionBusy) return;
+                serviceState = state; serviceDetail = snapshot != null ? "Live service telemetry connected" : detail;
+                serverControl.SetServiceState(serviceState, false, serviceDetail);
+                if (monitorPage.Visible && monitorControl.ServiceSelected)
+                {
+                    if (snapshot != null) monitorControl.UpdateService(snapshot, SmallFlag);
+                    else monitorControl.ServiceUnavailable(state, detail);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!IsDisposed && !serviceMonitorStop.IsCancellationRequested)
+                { serviceState = "Unavailable"; serverControl.SetServiceState(serviceState, serviceActionBusy, ex.Message); if (monitorControl.ServiceSelected) monitorControl.ServiceUnavailable(serviceState, ex.Message); }
+            }
+            finally { servicePollBusy = false; }
         }
         private void ExportService(object sender, EventArgs e)
         {
             try
             {
-                var settings = serverControl.ReadSettings(); settings.ScheduleEnabled = true;
-                var profile = new ServiceProfile { Server = settings, Sources = sourcesBox.Text,
-                    HttpTarget = targetBox.Text.Trim(), HttpsTarget = httpsTargetBox.Text.Trim(),
-                    Parallelism = (int)workers.Value, TimeoutMs = (int)timeoutBox.Value, RetryAlternate = retryAlternateBox.Checked };
-                profile.Validate();
+                var profile = CurrentServiceProfile();
                 using (var dialog = new SaveFileDialog { Filter = "Service profile (*.json)|*.json", FileName = "scrapex-service-profile.json" })
                 {
                     if (dialog.ShowDialog(this) != DialogResult.OK) return;
                     profile.Save(dialog.FileName, false);
-                    Notice("Service profile exported with automatic refresh enabled.\nOn this computer, run tools\\Manage-Service.ps1 -Action Install -ProfilePath <file> in elevated Windows PowerShell using the same account.\nStop the desktop API first if it uses the same port. See Service setup for details.");
+                    Notice("Advanced service profile exported. For normal setup, use Install / update service directly in this tab; no terminal is needed.");
                 }
             }
             catch (Exception ex) { Notice("Service export failed: " + ex.Message); }
@@ -112,12 +172,14 @@ namespace ScrapeX
             bool running = apiServer?.IsRunning == true;
             serverControl.SetState(running, refreshCoordinator?.IsRunning == true, serverStopping,
                 serverStopping ? "STOPPING…" : running ? "ONLINE  ·  " + serverSettings.Prefix : "OFFLINE  ·  Start the API to serve your published list");
-            if (monitorPage.Visible) monitorControl.UpdateState(publication, serverSettings, apiServer, refreshCoordinator, serverPipeline, SmallFlag);
+            if (monitorPage.Visible && !monitorControl.ServiceSelected) monitorControl.UpdateState(publication, serverSettings, apiServer, refreshCoordinator, serverPipeline, SmallFlag);
+            if (serverPage.Visible || monitorPage.Visible) PollService();
         }
         private void ServerTabClick(object sender, EventArgs e) { ShowPage(serverPage); }
         private void MonitorTabClick(object sender, EventArgs e) { ShowPage(monitorPage); nextMonitorUpdate = DateTime.MinValue; UpdateServerState(); }
         private async void ServerClosing(object sender, FormClosingEventArgs e)
         {
+            if (serviceActionBusy) { e.Cancel = true; Notice("Wait for the Windows service action to finish before closing ScrapeX."); return; }
             if (serverClosePending) { if (apiServer != null || serverStopping) e.Cancel = true; return; }
             if (apiServer == null && !serverStopping) return;
             e.Cancel = true; serverClosePending = true;

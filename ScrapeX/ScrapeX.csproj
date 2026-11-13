@@ -12,6 +12,7 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <Prefer32Bit>false</Prefer32Bit>
     <TargetFrameworkProfile />
     <ApplicationIcon>Resources\scrapex.ico</ApplicationIcon>
   </PropertyGroup>
@@ -59,6 +60,8 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="ServiceProfile.cs" />
+    <Compile Include="ServiceManager.cs" />
+    <Compile Include="ServiceMonitor.cs" />
     <Compile Include="CheckCheckpoint.cs" />
     <Compile Include="ServiceRuntime.cs" />
     <Compile Include="ScrapeXWindowsService.cs" />

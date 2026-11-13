@@ -20,10 +20,12 @@ namespace ScrapeX
         public int TimeoutMs { get; set; } = 8000;
         public bool RetryAlternate { get; set; }
         public bool MachineProtected { get; set; }
+        public string MonitorUserSid { get; set; }
         public void Validate()
         {
             if (Version != 1 || Server == null) throw new ArgumentException("Unsupported service profile.");
             Server.Validate();
+            if (!string.IsNullOrEmpty(MonitorUserSid)) new System.Security.Principal.SecurityIdentifier(MonitorUserSid);
             if (!Server.ScheduleEnabled) throw new ArgumentException("Enable automatic refresh for the Windows service.");
             if (Parallelism < 1 || Parallelism > 1000 || TimeoutMs < 100 || TimeoutMs > 120000) throw new ArgumentException("Invalid service check limits.");
             var urls = SourceCatalog.Urls(Sources);

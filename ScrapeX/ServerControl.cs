@@ -8,6 +8,17 @@ namespace ScrapeX
     public partial class ServerControl : UserControl
     {
         public event EventHandler StartRequested, StopRequested, RefreshRequested, CancelRequested, PublishRequested, ExportServiceRequested;
+        public event Action<string> ServiceActionRequested;
+        public void SetServiceState(string state, bool busy, string detail)
+        {
+            serviceStatus.Text = "WINDOWS SERVICE  ·  " + state + (string.IsNullOrEmpty(detail) ? "" : "  ·  " + detail);
+            serviceInstall.Enabled = !busy; serviceStart.Enabled = !busy && state == "Stopped";
+            serviceStop.Enabled = !busy && state == "Running"; serviceRestart.Enabled = serviceStop.Enabled;
+        }
+        private void InstallServiceClick(object s, EventArgs e) { ServiceActionRequested?.Invoke("Install"); }
+        private void StartServiceClick(object s, EventArgs e) { ServiceActionRequested?.Invoke("Start"); }
+        private void StopServiceClick(object s, EventArgs e) { ServiceActionRequested?.Invoke("Stop"); }
+        private void RestartServiceClick(object s, EventArgs e) { ServiceActionRequested?.Invoke("Restart"); }
         public ServerControl()
         {
             InitializeComponent();

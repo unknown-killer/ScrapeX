@@ -14,6 +14,12 @@ namespace ScrapeX
         [STAThread]
         static void Main(string[] args)
         {
+            if (args.Length == 3 && args[0] == "--manage-service")
+            {
+                try { ServiceManager.Execute(args[1], args[2]); }
+                catch (Exception ex) { Environment.ExitCode = 1; MessageBox.Show(ex.Message, "ScrapeX service setup", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+                return;
+            }
             if (args.Length == 1 && args[0] == "--service")
             {
                 System.ServiceProcess.ServiceBase.Run(new ScrapeXWindowsService());
