@@ -1,0 +1,30 @@
+PASS Exported profile contains no plaintext API key
+PASS User profile round-trip preserves key and automatic schedule
+PASS Service refuses a user-scoped profile
+PASS Probe configuration changes invalidate old checkpoints
+PASS Interrupted checkpoint restores despite torn journal tail
+PASS Only unfinished endpoints remain in the resumed queue
+PASS Verified HTTPS result and timings survive restart
+PASS Protocol hints survive checkpoint round-trip
+PASS Journal can append after recovering a torn line
+PASS Changed probe settings trigger fresh collection
+PASS Expired checkpoint is not reused
+PASS Completed checkpoint is removed
+PASS Interrupted scheduled cycle persists immediate-resume marker
+PASS Interrupted cycle resumes without waiting for its six-hour interval
+PASS Idle restart preserves next run and history
+PASS Machine-scoped profile decrypts for independent service host
+PASS Independent host serves service monitoring, start 1
+PASS Saved publication remains available after host restart 1
+PASS Exclusive data lease prevents two hosts sharing checkpoint state
+PASS Service host shutdown closes listener and scheduler
+PASS Independent host serves service monitoring, start 2
+PASS Saved publication remains available after host restart 2
+PASS Exclusive data lease prevents two hosts sharing checkpoint state
+PASS Service host shutdown closes listener and scheduler
+PASS Stopping and restarting does not replace a valid publication
+PASS Headless service runtime starts in its own process 1
+PASS Publication survives abrupt process termination 1
+PASS Headless service runtime starts in its own process 2
+PASS Publication survives abrupt process termination 2
+29 service assertions passed.
