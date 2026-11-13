@@ -13,11 +13,11 @@
   <p><a href="https://github.com/unknown-killer/ScrapeX/releases/latest"><strong>Download for Windows</strong></a> · <a href="#features">Features</a> · <a href="#download--run">Quick start</a> · <a href="#build-from-source">Build from source</a></p>
 </div>
 
-![ScrapeX server controls and Windows service export](docs/windows-service.png)
-*Server API: feed settings, scheduled refreshes and Windows service profile export.*
+![ScrapeX graphical service management](docs/service-controls-v1.3.png)
+*Server API: native controls for installation, updates, start, stop and restart.*
 
-![ScrapeX monitoring](docs/monitoring.png)
-*Monitoring: a real online smoke-test publication. Counts and availability depend on the network and check time.*
+![ScrapeX service monitoring](docs/service-monitor-v1.3.png)
+*The service view rendered with an explicitly labelled test fixture. Actual availability depends on the network and check time.*
 
 <details><summary>Desktop checking workspace</summary>
 
@@ -30,10 +30,11 @@
 
 | Capability | What ScrapeX does |
 | --- | --- |
+| **Service controls in the app** | Install, update, start, stop and restart the Windows service with buttons and the standard Windows administrator prompt. No terminal required. |
 | **Windows service** | Keep the API and scheduled scraper/checker running after the desktop closes or Windows reboots. Resume unfinished checks, preserve the schedule and recover from process failures. [Setup guide](docs/WINDOWS-SERVICE.md). |
 | **Your own proxy API** | Host TXT lists or JSON records from the Server API tab. Build links with country, protocol and HTTPS filters; use public access or API-key authentication. |
 | **Scheduled collection & checking** | Refresh every 15 minutes to 7 days. A complete check replaces the published list; interrupted cycles keep the previous publication available within its age limit. |
-| **Live monitoring** | Track available proxies, HTTPS totals, country flags and protocol breakdowns, request traffic, current progress and recent refreshes in a dedicated tab. |
+| **Live monitoring** | Select the Windows service or desktop instance to see its actual inventory, country/protocol totals, request traffic, check progress and refresh history. Disconnected service data is cleared. |
 | **Fresh, paginated feeds** | Filter by maximum TCP latency and result age, sort by ping, and retrieve up to 10,000 records per page. Expired results are excluded automatically. |
 | **Built-in proxy discovery** | Start collecting immediately from 180 bundled sources, including public feeds, APIs and supported websites. Duplicate endpoints are merged automatically. |
 | **HTTP · SOCKS4 · SOCKS5** | Identify supported proxy protocols and see working totals for each type at a glance. |
@@ -48,7 +49,7 @@
 
 ## Download & run
 
-1. Download **ScrapeX-v1.2.0-windows-portable.zip** from [Releases](https://github.com/unknown-killer/ScrapeX/releases).
+1. Download **ScrapeX-v1.3.0-windows-portable.zip** from [Releases](https://github.com/unknown-killer/ScrapeX/releases).
 2. Extract the entire archive to a writable folder on Windows with **.NET Framework 4.8** installed.
 3. Run `ScrapeX.exe`, keeping its DLL and configuration file alongside it.
 4. Choose **Collect proxies**, import an endpoint list, or click **Check HTTP + TLS** to collect automatically when the list is empty.
@@ -61,14 +62,14 @@ Saved sessions and country cache live under `%LOCALAPPDATA%\ScrapeX`.
 1. Open **Server API**, choose a port and set the public address used in generated links.
 2. Keep API-key access enabled for private clients, or select **Public list** for links that open directly in a browser.
 3. Enable automatic refresh and choose the interval, or publish an existing checked desktop list.
-4. Click **Save & start API**, then use **Refresh now** when needed. **Monitoring** shows publication totals and progress.
+4. Click **Start desktop API**, then use **Refresh now** when needed. **Monitoring → Desktop instance** shows its publication totals and progress.
 5. Choose a protocol, country codes and output format in **Build your link**.
 
 ```bash
 curl -H "X-Api-Key: YOUR_KEY" "http://127.0.0.1:8088/api/v1/proxies?format=json&type=socks5&country=US,DE&https=true&limit=100"
 ```
 
-The default listener is local to this computer. Remote deployment needs a Windows URL reservation and firewall configuration; HTTPS public URLs use a reverse proxy. For unattended operation, export a Windows service profile and install it with the bundled script. The service runs independently after closing the desktop and starts automatically after reboot. See [Windows service setup](docs/WINDOWS-SERVICE.md). See the bilingual [server & API guide](docs/SERVER-API.md) for setup, all filters and examples.
+The default listener is local to this computer. Remote deployment needs a Windows URL reservation and firewall configuration; HTTPS public URLs use a reverse proxy. For unattended operation, click **Install / update service** in Server API and approve the Windows administrator prompt. Use **Start service**, **Stop service** and **Restart service** to manage it; choose **Windows service** in Monitoring. The service runs independently after closing the desktop and starts automatically after reboot. See [Windows service setup](docs/WINDOWS-SERVICE.md). See the bilingual [server & API guide](docs/SERVER-API.md) for setup, all filters and examples.
 
 ## Understanding the results
 
@@ -123,7 +124,8 @@ See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the bundled dependency 
 
 - **سرور و API اختصاصی:** ساخت فهرست TXT یا خروجی JSON با فیلتر کشور، پروتکل و HTTPS؛ انتخاب دسترسی عمومی یا محافظت با کلید API.
 - **جمع‌آوری و بررسی زمان‌بندی‌شده:** تنظیم فاصلهٔ اجرا از ۱۵ دقیقه تا ۷ روز؛ انتشار فهرست جدید پس از پایان بررسی و حفظ انتشار قبلی در صورت لغو یا خطا، تا زمانی که نتایج منقضی نشده‌اند.
-- **تب مانیتورینگ:** مشاهدهٔ تعداد پروکسی‌ها، HTTPS، پرچم و تفکیک کشورها و پروتکل‌ها، درخواست‌های API، پیشرفت اجرا و تاریخچهٔ دورهای اخیر.
+- **مانیتورینگ خود سرویس:** انتخاب مستقل سرویس ویندوز یا نمونهٔ دسکتاپ؛ مشاهدهٔ آمار واقعی همان نمونه، کشور و پروتکل، پیشرفت چک، ترافیک API و تاریخچه؛ پاک‌شدن آمار قدیمی هنگام قطع ارتباط.
+- **مدیریت گرافیکی سرویس:** نصب، به‌روزرسانی، شروع، توقف و راه‌اندازی مجدد از داخل برنامه با تأیید معمول دسترسی مدیر ویندوز، بدون نیاز به نوشتن دستور.
 - **خروجی تازه و صفحه‌بندی‌شده:** فیلتر حداکثر پینگ TCP و عمر نتیجه، مرتب‌سازی بر اساس پینگ و دریافت حداکثر ۱۰ هزار رکورد در هر صفحه؛ حذف خودکار نتایج منقضی از پاسخ‌ها.
 
 - **جمع‌آوری از ۱۸۰ منبع آماده:** دریافت پروکسی از فهرست‌های عمومی، APIها و وب‌سایت‌های پشتیبانی‌شده، همراه با حذف خودکار موارد تکراری.
@@ -140,7 +142,7 @@ See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the bundled dependency 
 
 ### دانلود و شروع کار
 
-۱. از [بخش دانلود نسخه‌ها](https://github.com/unknown-killer/ScrapeX/releases/latest)، فایل **ScrapeX-v1.2.0-windows-portable.zip** را دریافت کنید.
+۱. از [بخش دانلود نسخه‌ها](https://github.com/unknown-killer/ScrapeX/releases/latest)، فایل **ScrapeX-v1.3.0-windows-portable.zip** را دریافت کنید.
 
 ۲. تمام محتویات فایل فشرده را در پوشه‌ای با امکان نوشتن استخراج کنید. برای اجرا، ویندوز و **.NET Framework 4.8** لازم است.
 
@@ -166,11 +168,11 @@ See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the bundled dependency 
 
 ۳. جمع‌آوری خودکار و فاصلهٔ زمانی را تنظیم کنید یا نتایج بررسی‌شدهٔ دسکتاپ را منتشر کنید.
 
-۴. **Save & start API** را بزنید. با **Refresh now** یک دور تازه شروع می‌شود و تب **Monitoring** آمار و پیشرفت را نشان می‌دهد.
+۴. **Start desktop API** را بزنید. با **Refresh now** یک دور تازه شروع می‌شود و گزینهٔ **Desktop instance** در تب **Monitoring** آمار و پیشرفت همین نمونه را نشان می‌دهد.
 
 ۵. در بخش **Build your link**، نوع پروکسی، کد کشورها و قالب خروجی را انتخاب کنید.
 
-حالت پیش‌فرض فقط روی همین کامپیوتر قابل دسترسی است. دسترسی از راه دور به رزرو URL ویندوز و تنظیم فایروال نیاز دارد؛ آدرس عمومی HTTPS با reverse proxy راه‌اندازی می‌شود. برای اجرای دائمی، تنظیمات سرویس را صادر کنید و با اسکریپت همراه نصب کنید. سرویس پس از بستن برنامه مستقل می‌ماند و پس از ری‌استارت ویندوز خودکار اجرا می‌شود. [راهنمای سرویس ویندوز](docs/WINDOWS-SERVICE.md) شامل نصب و مدیریت و ادامهٔ بررسی نیمه‌تمام است. [راهنمای فارسی و انگلیسی سرور و API](docs/SERVER-API.md) شامل مراحل نصب، تمام فیلترها و نمونهٔ درخواست‌هاست.
+حالت پیش‌فرض فقط روی همین کامپیوتر قابل دسترسی است. دسترسی از راه دور به رزرو URL ویندوز و تنظیم فایروال نیاز دارد؛ آدرس عمومی HTTPS با reverse proxy راه‌اندازی می‌شود. برای اجرای دائمی، در تب Server API دکمهٔ **Install / update service** را بزنید و تأیید دسترسی مدیر ویندوز را انجام دهید. برای مدیریت از دکمه‌های Start service، Stop service و Restart service و برای آمار از **Monitoring → Windows service** استفاده کنید. سرویس پس از بستن برنامه مستقل می‌ماند و پس از ری‌استارت ویندوز خودکار اجرا می‌شود. [راهنمای سرویس ویندوز](docs/WINDOWS-SERVICE.md) شامل نصب و مدیریت و ادامهٔ بررسی نیمه‌تمام است. [راهنمای فارسی و انگلیسی سرور و API](docs/SERVER-API.md) شامل مراحل نصب، تمام فیلترها و نمونهٔ درخواست‌هاست.
 
 ### معنی اطلاعات جدول
 
