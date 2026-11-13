@@ -1,5 +1,7 @@
 # SCRAPE X - embedded default source catalog
-# Audited 2026-10-07 UTC. Feed reachability is NOT proof that individual proxies work.
+# Reachability and additions audited 2026-11-13 UTC; see docs/SOURCE-AUDIT.md.
+# Existing per-file freshness annotations below are the historical 2026-10-07 audit.
+# Feed reachability is NOT proof that individual proxies work.
 # Every requested URL is retained, including explicitly labelled older files.
 # Disable a feed by putting # before its URL, then click Save sources.
 # Freshness: recent <=7 days; aging 8-30 days; stale >30 days since exact-file commit.
@@ -510,3 +512,42 @@ https://www.freevpnnode.com/free-proxy
 # Public website/API | production scraper: 700 endpoints | publication freshness unknown
 https://www.my-proxy.com/free-proxy-list.html
 
+
+# Expansion audited 2026-11-13. Production SourceParser validated each enabled feed.
+# Snapshot counts are candidates, not verified working proxies. Mirrors/subsets are documented in docs/SOURCE-AUDIT.md.
+
+# 29481 parsed; 7559 additional unique at audit; recent (<=7 days)
+https://raw.githubusercontent.com/hproxy-com/free-proxy-list/main/all.txt
+
+# 5874 parsed; 443 additional unique at audit; recent (<=7 days)
+https://raw.githubusercontent.com/xyzs996/free-proxy-health-list/main/all.txt
+
+# 2952 parsed; 4 additional unique at audit; Not established (public download tested)
+https://freeproxyhub.net/api/v1/proxies
+
+# 1111 parsed; 53 additional unique at audit; stale (>30 days)
+https://raw.githubusercontent.com/Moleway/Free-Proxy-List/main/all.txt
+
+# 977 parsed; 11 additional unique at audit; Not established (public download tested)
+https://flashproxy.com/api/proxies/txt?limit=1000
+
+# 191 parsed; 1 additional unique at audit; Not established (public download tested)
+https://proxywing.com/api/free-proxy-list?format=txt&proxy_format=protocolipport
+
+# 50 parsed; 2 additional unique at audit; Not established (public download tested)
+https://proxylister.com/free-proxies
+
+# 50 parsed; 3 additional unique at audit; Not established (public download tested)
+https://remproxy.com/cn/freeproxy
+
+# 548309 parsed; 253370 additional unique at audit; Not established (public download tested)
+https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/http.txt
+
+# 503779 parsed; 13863 additional unique at audit; Not established (public download tested)
+https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/socks5.txt
+
+# 502160 parsed; 1751 additional unique at audit; Not established (public download tested)
+https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/https.txt
+
+# 487436 parsed; 3180 additional unique at audit; Not established (public download tested)
+https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/socks4.txt

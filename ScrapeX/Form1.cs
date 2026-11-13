@@ -34,9 +34,11 @@ namespace ScrapeX
         private bool closeAfterStop;
         private bool checking;
         private string outputFolder;
-        private static readonly string UserFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ScrapeX");
-        public Form1()
+        private readonly string UserFolder;
+        public Form1() : this(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ScrapeX")) { }
+        public Form1(string dataFolder)
         {
+            UserFolder = Path.GetFullPath(dataFolder);
             InitializeComponent();
             if (System.ComponentModel.LicenseManager.UsageMode == System.ComponentModel.LicenseUsageMode.Designtime) return;
             filterBox.SelectedIndex = 0;
@@ -59,18 +61,22 @@ namespace ScrapeX
             }
             catch (Exception ex) { Log("Could not load sources: " + ex.Message); }
             SetBusy(false);
+            InitializeServer();
+            FormClosing += ServerClosing;
         }
         private async Task Run(Func<CancellationToken, Task> action, string label)
         {
             if (operation != null) return;
             operation = new CancellationTokenSource();
             SetBusy(true); watch.Restart(); statusLabel.Text = label;
-            try { await action(operation.Token); statusLabel.Text = "Completed"; }
+            bool admitted = false;
+            try { await RefreshCoordinator.NetworkWork.WaitAsync(operation.Token); admitted = true; await action(operation.Token); statusLabel.Text = "Completed"; }
             catch (OperationCanceledException) { statusLabel.Text = "Stopped — partial results retained"; }
             catch (Exception ex) { statusLabel.Text = "Operation failed — see activity"; Log(ex.ToString()); }
             finally
             {
                 checking = false;
+                if (admitted) RefreshCoordinator.NetworkWork.Release();
                 watch.Stop(); while (!incoming.IsEmpty) RefreshState(); RefreshState(); operation.Dispose(); operation = null; SetBusy(false);
                 if (closeAfterStop) Close();
             }
@@ -78,7 +84,7 @@ namespace ScrapeX
         private async void ScrapeClick(object sender, EventArgs e)
         {
             var urls = sourcesBox.Lines.Select(x => x.Trim()).Where(x => x.Length > 0 && !x.StartsWith("#")).ToArray();
-            if (urls.Length == 0 || urls.Length > 200) { Notice("Enter between 1 and 200 source URLs."); return; }
+            if (urls.Length == 0 || urls.Length > SourceCatalog.MaxSources) { Notice("Enter between 1 and " + SourceCatalog.MaxSources + " source URLs."); return; }
             await Run(async token =>
             {
                 var scraper = new ProxyScraperManager(candidates);
@@ -97,7 +103,7 @@ namespace ScrapeX
             { Notice("The mandatory TLS probe must use an https:// URL without credentials or a fragment."); return; }
             var sourceUrls = SourceCatalog.Urls(sourcesBox.Text);
             if (candidates.IsEmpty && sourceUrls.Length == 0) { sourcesBox.Text = SourceCatalog.Defaults; sourceUrls = SourceCatalog.Urls(sourcesBox.Text); }
-            if (candidates.IsEmpty && sourceUrls.Length > 200) { Notice("Enter at most 200 source URLs."); return; }
+            if (candidates.IsEmpty && sourceUrls.Length > SourceCatalog.MaxSources) { Notice("Enter at most " + SourceCatalog.MaxSources + " source URLs."); return; }
             int concurrency = (int)workers.Value, timeout = (int)timeoutBox.Value;
             bool lookupCountries = autoCountryBox.Checked;
             bool retryAlternate = retryAlternateBox.Checked;
@@ -202,6 +208,7 @@ namespace ScrapeX
                 statusLabel.Text = "Checking · " + (Volatile.Read(ref checkedCount) / watch.Elapsed.TotalSeconds).ToString("N1") + " proxies/sec · " + visible.Count.ToString("N0") + " shown · TCP " + (scheduler?.Connecting ?? 0) + " / probes " + (scheduler?.Probing ?? 0);
             elapsedLabel.Text = watch.Elapsed.ToString(@"hh\:mm\:ss");
             progress.Value = totalCount == 0 ? 0 : Math.Min(1000, (int)(1000L * Volatile.Read(ref checkedCount) / totalCount));
+            UpdateServerState();
         }
         private bool Matches(ProxyTypeDetector.ProxyTestResult r)
         {

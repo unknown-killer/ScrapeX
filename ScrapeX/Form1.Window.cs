@@ -64,9 +64,18 @@ namespace ScrapeX
         private void ShowPage(Panel page)
         {
             resultPage.Visible = page == resultPage; sourcePage.Visible = page == sourcePage; activityPage.Visible = page == activityPage;
+            serverPage.Visible = page == serverPage; monitorPage.Visible = page == monitorPage;
+            bool service = page == serverPage || page == monitorPage;
+            foreach (Control control in workspacePanel.Controls) control.Visible = !service || control == tabPanel || control == pagesPanel;
+            tabPanel.Top = service ? 14 : 407;
+            pagesPanel.Top = service ? 65 : 452;
+            pagesPanel.Height = Math.Max(200, workspacePanel.ClientSize.Height - pagesPanel.Top - 12);
+            page.BringToFront();
             resultsTabButton.ForeColor = page == resultPage ? accent : muted;
             sourcesTabButton.ForeColor = page == sourcePage ? accent : muted;
             activityTabButton.ForeColor = page == activityPage ? accent : muted;
+            serverTabButton.ForeColor = page == serverPage ? accent : muted;
+            monitorTabButton.ForeColor = page == monitorPage ? accent : muted;
         }
         private void ResultsTabClick(object sender, EventArgs e) { ShowPage(resultPage); }
         private void SourcesTabClick(object sender, EventArgs e) { ShowPage(sourcePage); }

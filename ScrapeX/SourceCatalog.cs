@@ -7,6 +7,7 @@ namespace ScrapeX
 {
     public static class SourceCatalog
     {
+        public const int MaxSources = 512;
         public static string Defaults
         {
             get
