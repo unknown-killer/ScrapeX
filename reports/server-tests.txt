@@ -1,0 +1,43 @@
+PASS API key is encrypted on disk
+PASS API key restores for the current Windows account
+PASS Public origin rejects credentials
+PASS Schedule rejects NaN intervals
+PASS Publication excludes non-public endpoints
+PASS Durable publication round-trips
+PASS Default query returns fresh HTTPS-verified proxies only
+PASS HTTP-only filter excludes HTTPS entries
+PASS Country and protocol filters intersect, case insensitive
+PASS Unknown countries have explicit ZZ filter
+PASS Latency ordering is stable
+PASS Latency threshold filters correctly
+PASS Invalid query rejected: limit 0
+PASS Invalid query rejected: limit 10001
+PASS Invalid query rejected: offset -1
+PASS Invalid query rejected: https yes
+PASS Invalid query rejected: format xml
+PASS Invalid query rejected: country USA
+PASS Invalid query rejected: type https
+PASS Invalid query rejected: max_age_hours 25
+PASS Invalid query rejected: api_key secret
+PASS Invalid query rejected: country US country DE
+PASS API key comparison handles mismatch and missing values
+PASS Listener health works without a secret
+PASS Proxy data requires authorization by default (actual: 401 {"error":"Supply X-Api-Key or Authorization: Bearer. Keys in URLs are not accepted."})
+PASS Live JSON API applies filters and camel-case schema
+PASS Text feed is IP:port only, expired results omitted
+PASS Pagination exposes correct next offset
+PASS Malformed queries return 400
+PASS API is read-only
+PASS Unknown routes return 404
+PASS HEAD sends no response body
+PASS Monitoring totals match published fresh records
+PASS Bearer authorization supported
+PASS Successful empty publication clears old proxies atomically
+PASS API stops cleanly with no open listener
+PASS Scheduled refreshes repeat without overlap
+PASS Refresh history records completed publications
+PASS Manual refresh can start with schedule disabled
+PASS Duplicate refresh requests are rejected while active
+PASS Cancellation is recorded and does not publish partial data
+PASS Refresh failures are retained in history
+TOTAL: 42 server assertions passed
