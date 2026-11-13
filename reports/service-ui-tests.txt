@@ -1,0 +1,27 @@
+PASS Elevated command arguments preserve spaces, quotes and literal shell characters
+PASS Invalid service actions are rejected before any system change
+PASS Service telemetry denies network logons
+PASS Telemetry is not granted to Everyone
+PASS Named pipe returns statistics from the service host
+PASS Local telemetry contains no API credential
+PASS Country protocol breakdown travels through local telemetry
+PASS Abandoned monitoring client does not stop the service endpoint
+PASS Stopping an idle telemetry listener cancels its pending connection
+PASS Closing the desktop cancels pending telemetry requests
+PASS Desktop telemetry cannot be mistaken for Windows service data
+PASS Monitoring defaults to Windows service
+PASS Service inventory populates monitor cards
+PASS Service progress uses service checked and collected counts
+PASS Country grid displays service SOCKS5 totals
+PASS Live service status is explicitly labelled
+PASS Stopped service clears stale inventory and country rows
+PASS Offline service clears progress
+PASS Desktop monitoring is an explicit separate selection
+PASS Successful service actions can select the service view
+PASS Not-installed state offers installation only
+PASS Install button dispatches the service action without a shell prompt
+PASS Stopped state enables the Start service action
+PASS Running state enables the Stop service action
+PASS Restart button dispatches a distinct service action
+PASS All service buttons lock while an action is in progress
+26 service UI and telemetry assertions passed.
