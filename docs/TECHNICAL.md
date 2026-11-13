@@ -80,3 +80,11 @@ Run `tools/build-and-test.ps1`. It builds Release and runs regression, performan
 - `reports/ui-preview*.png`: UI render checks (rows labeled Fixture are synthetic).
 
 Both Debug and Release target .NET Framework 4.8. Newtonsoft.Json 13.0.3 is the only external runtime assembly. TLS authentication follows the platform [SslStream](https://learn.microsoft.com/en-us/dotnet/api/system.net.security.sslstream?view=netframework-4.8.1) validation behavior.
+
+## Windows service host (1.2.0)
+
+`Program --service` enters ServiceBase before any WinForms initialization. ServiceRuntime owns the listener, persistent coordinator and checkpoint-enabled refresh pipeline. The installer uses LocalService, delayed automatic start and SCM restart recovery. Desktop and service data folders are deliberately separate. The service data directory has a restricted DACL; exported DPAPI CurrentUser keys become LocalMachine keys on installation.
+
+CheckCheckpoint stores an atomic candidate manifest and a bounded-size append journal, preserving protocol hints and verified results. It tolerates incomplete trailing records, rechecks unrecorded endpoints and discards expired/configuration-mismatched checkpoints. The coordinator saves in-progress state before starting work and next-run/history after completion. A crashed cycle resumes immediately; failures retry within five minutes. A process-exclusive file lease prevents concurrent hosts from sharing the data folder.
+
+`tools/ServiceTests.cs` checks profiles, checkpoint recovery, persistent schedules, independent host API lifecycle and forced child-process termination/restart. These are headless runtime tests, not an actual SCM/reboot test. See [deployment and verification](WINDOWS-SERVICE.md) for the full operational contract and test limitation.

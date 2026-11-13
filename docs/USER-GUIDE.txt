@@ -5,8 +5,8 @@
   English (#features) · فارسی (#persian)
   Download for Windows (https://github.com/unknown-killer/ScrapeX/releases/latest) · Features (#features) · Quick start (#download--run) · Build from source (#build-from-source)
 
-ScrapeX server controls
-*Server API: connection settings, scheduled refreshes and filtered feed links.*
+ScrapeX server controls and Windows service export
+*Server API: feed settings, scheduled refreshes and Windows service profile export.*
 
 ScrapeX monitoring
 *Monitoring: a real online smoke-test publication. Counts and availability depend on the network and check time.*
@@ -20,6 +20,7 @@ Features
 
 | Capability | What ScrapeX does |
 | --- | --- |
+| Windows service | Keep the API and scheduled scraper/checker running after the desktop closes or Windows reboots. Resume unfinished checks, preserve the schedule and recover from process failures. Setup guide (docs/WINDOWS-SERVICE.md). |
 | Your own proxy API | Host TXT lists or JSON records from the Server API tab. Build links with country, protocol and HTTPS filters; use public access or API-key authentication. |
 | Scheduled collection & checking | Refresh every 15 minutes to 7 days. A complete check replaces the published list; interrupted cycles keep the previous publication available within its age limit. |
 | Live monitoring | Track available proxies, HTTPS totals, country flags and protocol breakdowns, request traffic, current progress and recent refreshes in a dedicated tab. |
@@ -37,7 +38,7 @@ Features
 
 Download & run
 
-1. Download ScrapeX-v1.1.0-windows-portable.zip from Releases (https://github.com/unknown-killer/ScrapeX/releases).
+1. Download ScrapeX-v1.2.0-windows-portable.zip from Releases (https://github.com/unknown-killer/ScrapeX/releases).
 2. Extract the entire archive to a writable folder on Windows with .NET Framework 4.8 installed.
 3. Run ScrapeX.exe, keeping its DLL and configuration file alongside it.
 4. Choose Collect proxies, import an endpoint list, or click Check HTTP + TLS to collect automatically when the list is empty.
@@ -55,7 +56,7 @@ Serve a proxy feed
 
 curl -H "X-Api-Key: YOUR_KEY" "http://127.0.0.1:8088/api/v1/proxies?format=json&type=socks5&country=US,DE&https=true&limit=100"
 
-The default listener is local to this computer. Remote deployment needs a Windows URL reservation and firewall configuration; HTTPS public URLs use a reverse proxy. ScrapeX must stay open: this release runs in the desktop session, not as a Windows service. See the bilingual server & API guide (docs/SERVER-API.md) for setup, all filters and examples.
+The default listener is local to this computer. Remote deployment needs a Windows URL reservation and firewall configuration; HTTPS public URLs use a reverse proxy. For unattended operation, export a Windows service profile and install it with the bundled script. The service runs independently after closing the desktop and starts automatically after reboot. See Windows service setup (docs/WINDOWS-SERVICE.md). See the bilingual server & API guide (docs/SERVER-API.md) for setup, all filters and examples.
 
 Understanding the results
 
@@ -111,6 +112,7 @@ See THIRD-PARTY-NOTICES.md (THIRD-PARTY-NOTICES.md) for the bundled dependency n
 - پشتیبانی از HTTP، SOCKS4 و SOCKS5: تشخیص نوع پروکسی و نمایش تعداد پروکسی‌های فعال برای هر پروتکل.
 - بررسی واقعی HTTPS و TLS: ارسال درخواست HTTPS از مسیر پروکسی با اعتبارسنجی گواهی و نام میزبان؛ نمایش و ذخیرهٔ جداگانهٔ پروکسی‌های تأییدشدهٔ HTTPS و پروکسی‌های صرفاً HTTP.
 - بررسی هم‌زمان پروکسی‌ها: تنظیم تعداد بررسی‌های موازی و زمان انتظار، مدیریت تطبیقی اتصال‌ها و مشاهدهٔ پیشرفت بررسی به‌صورت زنده.
+- سرویس مستقل ویندوز: اجرای API و اسکرپ و چک زمان‌بندی‌شده پس از بستن برنامه و ری‌استارت سرور، ادامهٔ صف نیمه‌تمام و حفظ زمان اجرای بعدی؛ راهنمای نصب (docs/WINDOWS-SERVICE.md).
 - نمایش اطلاعات کشور: نام کشور، کد دوحرفی مانند DE و US و پرچم کوچک در کنار هر نتیجه؛ شناسایی کشور با چند سرویس و استفاده از اطلاعات ذخیره‌شده.
 - اندازه‌گیری زمان اتصال: نمایش زمان برقراری اتصال TCP و زمان جداگانهٔ درخواست‌های HTTP و HTTPS برای مقایسهٔ نتایج.
 - خروجی بر اساس کشور و پروتکل: انتخاب کشورها و نوع پروکسی هنگام ذخیره، با امکان ساخت فایل جداگانه برای هر کشور.
@@ -120,7 +122,7 @@ See THIRD-PARTY-NOTICES.md (THIRD-PARTY-NOTICES.md) for the bundled dependency n
 
 دانلود و شروع کار
 
-۱. از بخش دانلود نسخه‌ها (https://github.com/unknown-killer/ScrapeX/releases/latest)، فایل ScrapeX-v1.1.0-windows-portable.zip را دریافت کنید.
+۱. از بخش دانلود نسخه‌ها (https://github.com/unknown-killer/ScrapeX/releases/latest)، فایل ScrapeX-v1.2.0-windows-portable.zip را دریافت کنید.
 
 ۲. تمام محتویات فایل فشرده را در پوشه‌ای با امکان نوشتن استخراج کنید. برای اجرا، ویندوز و .NET Framework 4.8 لازم است.
 
@@ -146,7 +148,7 @@ See THIRD-PARTY-NOTICES.md (THIRD-PARTY-NOTICES.md) for the bundled dependency n
 
 ۵. در بخش Build your link، نوع پروکسی، کد کشورها و قالب خروجی را انتخاب کنید.
 
-حالت پیش‌فرض فقط روی همین کامپیوتر قابل دسترسی است. دسترسی از راه دور به رزرو URL ویندوز و تنظیم فایروال نیاز دارد؛ آدرس عمومی HTTPS با reverse proxy راه‌اندازی می‌شود. برنامه باید باز بماند؛ این نسخه سرویس مستقل ویندوز نیست. راهنمای فارسی و انگلیسی سرور و API (docs/SERVER-API.md) شامل مراحل نصب، تمام فیلترها و نمونهٔ درخواست‌هاست.
+حالت پیش‌فرض فقط روی همین کامپیوتر قابل دسترسی است. دسترسی از راه دور به رزرو URL ویندوز و تنظیم فایروال نیاز دارد؛ آدرس عمومی HTTPS با reverse proxy راه‌اندازی می‌شود. برای اجرای دائمی، تنظیمات سرویس را صادر کنید و با اسکریپت همراه نصب کنید. سرویس پس از بستن برنامه مستقل می‌ماند و پس از ری‌استارت ویندوز خودکار اجرا می‌شود. راهنمای سرویس ویندوز (docs/WINDOWS-SERVICE.md) شامل نصب و مدیریت و ادامهٔ بررسی نیمه‌تمام است. راهنمای فارسی و انگلیسی سرور و API (docs/SERVER-API.md) شامل مراحل نصب، تمام فیلترها و نمونهٔ درخواست‌هاست.
 
 معنی اطلاعات جدول
 

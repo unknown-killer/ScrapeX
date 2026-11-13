@@ -4,7 +4,7 @@
 
 ## Quick start
 
-ScrapeX 1.1.0 can publish checked proxies from a Windows desktop or Windows Server with Desktop Experience and .NET Framework 4.8. Keep the application and its Windows session running. This is an in-process server, not an installed Windows service; after restarting the app, click **Save & start API** again.
+ScrapeX 1.2.0 supports desktop hosting and an independent Windows service. The steps below describe desktop mode, which stops when the app closes. For automatic startup after reboot and unattended collection/checking, use the bilingual [Windows service guide](WINDOWS-SERVICE.md).
 
 1. Configure sources, HTTP/HTTPS targets, parallelism and stage timeout in the desktop workspace.
 2. Open **Server API**. Default port: `8088`; default binding: `127.0.0.1` only.
@@ -103,7 +103,7 @@ The API admits up to 32 simultaneous requests and 120 requests/second globally. 
 
 ## راهنمای فارسی سرور و API
 
-نسخهٔ ۱.۱.۰ روی ویندوز یا Windows Server دارای محیط گرافیکی و .NET Framework 4.8 فهرست پروکسی‌های بررسی‌شده را منتشر می‌کند. برنامه و نشست ویندوز باید باز بمانند؛ این قابلیت سرویس مستقل ویندوز نیست. پس از بازکردن دوبارهٔ برنامه، دکمهٔ شروع API را بزنید.
+نسخهٔ ۱.۲.۰ هم اجرای داخل برنامه و هم سرویس مستقل ویندوز را پشتیبانی می‌کند. مراحل زیر مربوط به حالت دسکتاپ است که با بستن برنامه متوقف می‌شود. برای اجرای خودکار بعد از ری‌استارت و اسکرپ و چک بدون ورود کاربر، [راهنمای سرویس ویندوز](WINDOWS-SERVICE.md) را دنبال کنید.
 
 ### شروع کار
 
