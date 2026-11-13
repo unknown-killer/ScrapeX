@@ -7,7 +7,7 @@ namespace ScrapeX
 {
     public partial class ServerControl : UserControl
     {
-        public event EventHandler StartRequested, StopRequested, RefreshRequested, CancelRequested, PublishRequested;
+        public event EventHandler StartRequested, StopRequested, RefreshRequested, CancelRequested, PublishRequested, ExportServiceRequested;
         public ServerControl()
         {
             InitializeComponent();
@@ -59,6 +59,12 @@ namespace ScrapeX
         private void RunClick(object s, EventArgs e) { RefreshRequested?.Invoke(this, e); }
         private void CancelClick(object s, EventArgs e) { CancelRequested?.Invoke(this, e); }
         private void PublishClick(object s, EventArgs e) { PublishRequested?.Invoke(this, e); }
+        private void ExportServiceClick(object s, EventArgs e) { ExportServiceRequested?.Invoke(this, e); }
+        private void ServiceGuideClick(object s, EventArgs e)
+        {
+            try { System.Diagnostics.Process.Start("https://github.com/unknown-killer/ScrapeX/blob/main/docs/WINDOWS-SERVICE.md"); }
+            catch (Exception ex) { MessageBox.Show(this, ex.Message, "ScrapeX"); }
+        }
         private void CopyLink(object s, EventArgs e) { Copy(feedLink.Text); }
         private void CopyKey(object s, EventArgs e) { Copy(apiKey.Text); }
         private void Copy(string value) { try { Clipboard.SetText(value); } catch (System.Runtime.InteropServices.ExternalException) { MessageBox.Show(this, "Clipboard is busy. Try again.", "ScrapeX"); } }

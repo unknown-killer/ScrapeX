@@ -1,4 +1,4 @@
-namespace ScrapeX
+﻿namespace ScrapeX
 {
     partial class ServerControl
     {
@@ -52,6 +52,8 @@ namespace ScrapeX
             this.cancelRun = new System.Windows.Forms.Button();
             this.publish = new System.Windows.Forms.Button();
             this.deploymentHint = new System.Windows.Forms.Label();
+            this.exportService = new System.Windows.Forms.Button();
+            this.serviceGuide = new System.Windows.Forms.Button();
             this.SuspendLayout();
             this.heading.Name = "heading";
             this.heading.Location = new System.Drawing.Point(24, 18);
@@ -485,14 +487,38 @@ namespace ScrapeX
             this.deploymentHint.ForeColor = System.Drawing.Color.FromArgb(145, 165, 190);
             this.deploymentHint.BackColor = System.Drawing.Color.Transparent;
             this.deploymentHint.TabIndex = 41;
-            this.deploymentHint.Text = "Windows Server: allow the selected port and reserve the listener URL.\nFor an HTTPS public address, use a reverse proxy.\nKeep ScrapeX open; closing the app stops the server.";
+            this.deploymentHint.Text = "Windows Server: allow the selected port and reserve the listener URL.\nFor an HTTPS public address, use a reverse proxy.\nDesktop mode stops when this app closes. Use Windows service mode below.";
             this.Controls.Add(this.deploymentHint);
+            this.exportService.Name = "exportService";
+            this.exportService.Location = new System.Drawing.Point(24, 708);
+            this.exportService.Size = new System.Drawing.Size(410, 38);
+            this.exportService.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.exportService.ForeColor = System.Drawing.Color.FromArgb(236, 244, 255);
+            this.exportService.BackColor = System.Drawing.Color.FromArgb(35, 49, 68);
+            this.exportService.Text = "Export Windows service profile";
+            this.exportService.TabIndex = 42;
+            this.exportService.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.exportService.FlatAppearance.BorderSize = 0;
+            this.exportService.Click += new System.EventHandler(this.ExportServiceClick);
+            this.Controls.Add(this.exportService);
+            this.serviceGuide.Name = "serviceGuide";
+            this.serviceGuide.Location = new System.Drawing.Point(454, 708);
+            this.serviceGuide.Size = new System.Drawing.Size(560, 38);
+            this.serviceGuide.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.serviceGuide.ForeColor = System.Drawing.Color.FromArgb(236, 244, 255);
+            this.serviceGuide.BackColor = System.Drawing.Color.FromArgb(35, 49, 68);
+            this.serviceGuide.Text = "Service setup · runs after sign-out and reboot";
+            this.serviceGuide.TabIndex = 43;
+            this.serviceGuide.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.serviceGuide.FlatAppearance.BorderSize = 0;
+            this.serviceGuide.Click += new System.EventHandler(this.ServiceGuideClick);
+            this.Controls.Add(this.serviceGuide);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.BackColor = System.Drawing.Color.FromArgb(12, 18, 29);
             this.AutoScroll = true;
-            this.AutoScrollMinSize = new System.Drawing.Size(1040, 716);
-            this.Size = new System.Drawing.Size(1040, 716);
+            this.AutoScrollMinSize = new System.Drawing.Size(1040, 770);
+            this.Size = new System.Drawing.Size(1040, 770);
             this.Name = "ServerControl";
             ((System.ComponentModel.ISupportInitialize)(this.port)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.interval)).EndInit();
@@ -500,6 +526,8 @@ namespace ScrapeX
             ((System.ComponentModel.ISupportInitialize)(this.feedLimit)).EndInit();
             this.ResumeLayout(false);
         }
+        private System.Windows.Forms.Button exportService;
+        private System.Windows.Forms.Button serviceGuide;
         private System.Windows.Forms.Label heading;
         private System.Windows.Forms.Label intro;
         private System.Windows.Forms.Label serverState;

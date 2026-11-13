@@ -27,6 +27,25 @@ namespace ScrapeX
             serverControl.RefreshRequested += (s, e) => { if (refreshCoordinator?.RequestNow() == true) Log("Server refresh requested."); };
             serverControl.CancelRequested += (s, e) => refreshCoordinator?.CancelCurrent();
             serverControl.PublishRequested += PublishDesktopResults;
+            serverControl.ExportServiceRequested += ExportService;
+        }
+        private void ExportService(object sender, EventArgs e)
+        {
+            try
+            {
+                var settings = serverControl.ReadSettings(); settings.ScheduleEnabled = true;
+                var profile = new ServiceProfile { Server = settings, Sources = sourcesBox.Text,
+                    HttpTarget = targetBox.Text.Trim(), HttpsTarget = httpsTargetBox.Text.Trim(),
+                    Parallelism = (int)workers.Value, TimeoutMs = (int)timeoutBox.Value, RetryAlternate = retryAlternateBox.Checked };
+                profile.Validate();
+                using (var dialog = new SaveFileDialog { Filter = "Service profile (*.json)|*.json", FileName = "scrapex-service-profile.json" })
+                {
+                    if (dialog.ShowDialog(this) != DialogResult.OK) return;
+                    profile.Save(dialog.FileName, false);
+                    Notice("Service profile exported with automatic refresh enabled.\nOn this computer, run tools\\Manage-Service.ps1 -Action Install -ProfilePath <file> in elevated Windows PowerShell using the same account.\nStop the desktop API first if it uses the same port. See Service setup for details.");
+                }
+            }
+            catch (Exception ex) { Notice("Service export failed: " + ex.Message); }
         }
         private async void PublishDesktopResults(object sender, EventArgs e)
         {

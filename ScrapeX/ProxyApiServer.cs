@@ -29,6 +29,7 @@ namespace ScrapeX
         private int rateCount;
         private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver(), DateTimeZoneHandling = DateTimeZoneHandling.Utc };
         public bool IsRunning { get { return listener.IsListening; } }
+        public bool IsHealthy { get { return IsRunning && acceptTask != null && !acceptTask.IsCompleted; } }
         public long RequestCount { get { return Interlocked.Read(ref requestCount); } }
         public long DeniedCount { get { return Interlocked.Read(ref deniedCount); } }
         public long ErrorCount { get { return Interlocked.Read(ref errorCount); } }

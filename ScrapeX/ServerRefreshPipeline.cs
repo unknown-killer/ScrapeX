@@ -15,6 +15,8 @@ namespace ScrapeX
         private readonly Uri http, https;
         private readonly int parallelism, timeout;
         private readonly bool retry;
+        private readonly string checkpointFingerprint;
+        private readonly double checkpointMaxAge;
         private int collected, checkedCount, working;
         private string phase = "Idle";
         public string Phase { get { return Volatile.Read(ref phase); } }
@@ -22,24 +24,43 @@ namespace ScrapeX
         public int Checked { get { return Volatile.Read(ref checkedCount); } }
         public int Working { get { return Volatile.Read(ref working); } }
         public event Action<string> Diagnostic;
-        public ServerRefreshPipeline(ProxyPublication publication, string folder, string[] sources, Uri http, Uri https, int parallelism, int timeout, bool retry)
-        { this.publication = publication; this.folder = folder; this.sources = sources; this.http = http; this.https = https; this.parallelism = parallelism; this.timeout = timeout; this.retry = retry; }
+        public ServerRefreshPipeline(ProxyPublication publication, string folder, string[] sources, Uri http, Uri https, int parallelism, int timeout, bool retry, string checkpointFingerprint = null, double checkpointMaxAge = 24)
+        { this.publication = publication; this.folder = folder; this.sources = sources; this.http = http; this.https = https; this.parallelism = parallelism; this.timeout = timeout; this.retry = retry; this.checkpointFingerprint = checkpointFingerprint; this.checkpointMaxAge = checkpointMaxAge; }
         public async Task<int> RunAsync(CancellationToken token)
         {
             phase = "Waiting for current desktop operation";
             bool admitted = false;
+            var checkpoint = checkpointFingerprint == null ? null : new CheckCheckpoint(folder);
             try
             {
                 await RefreshCoordinator.NetworkWork.WaitAsync(token).ConfigureAwait(false); admitted = true;
-                collected = checkedCount = working = 0; phase = "Collecting sources";
-                var candidates = new ConcurrentDictionary<string, ProxyEndpoint>();
-                var scraper = new ProxyScraperManager(candidates);
-                scraper.OnSourceCompleted += r => { Volatile.Write(ref collected, candidates.Count); Diagnostic?.Invoke(r.ToString()); };
-                await scraper.StartScrapingAsync(sources, token).ConfigureAwait(false);
-                token.ThrowIfCancellationRequested();
-                if (candidates.IsEmpty) throw new IOException("No candidates returned by the configured sources.");
-                var ordered = candidates.Values.ToArray(); var random = new Random();
-                for (int i = ordered.Length - 1; i > 0; i--) { int j = random.Next(i + 1); var value = ordered[i]; ordered[i] = ordered[j]; ordered[j] = value; }
+                collected = checkedCount = working = 0;
+                bool resumed = false;
+                if (checkpoint != null)
+                {
+                    try { resumed = checkpoint.Restore(checkpointFingerprint, checkpointMaxAge); }
+                    catch (Exception ex) when (ex is IOException || ex is Newtonsoft.Json.JsonException || ex is ArgumentException)
+                    { checkpoint.Dispose(); checkpoint = new CheckCheckpoint(folder); Diagnostic?.Invoke("Checkpoint unavailable; collecting again: " + ex.Message); }
+                }
+                ProxyEndpoint[] ordered;
+                if (resumed)
+                {
+                    ordered = checkpoint.Endpoints; collected = ordered.Length;
+                    Diagnostic?.Invoke("Resuming checkpoint: " + checkpoint.Completed.Count + " completed, " + (ordered.Length - checkpoint.Completed.Count) + " pending.");
+                }
+                else
+                {
+                    phase = "Collecting sources";
+                    var candidates = new ConcurrentDictionary<string, ProxyEndpoint>();
+                    var scraper = new ProxyScraperManager(candidates);
+                    scraper.OnSourceCompleted += r => { Volatile.Write(ref collected, candidates.Count); Diagnostic?.Invoke(r.ToString()); };
+                    await scraper.StartScrapingAsync(sources, token).ConfigureAwait(false);
+                    token.ThrowIfCancellationRequested();
+                    if (candidates.IsEmpty) throw new IOException("No candidates returned by the configured sources.");
+                    ordered = candidates.Values.ToArray(); var random = new Random();
+                    for (int i = ordered.Length - 1; i > 0; i--) { int j = random.Next(i + 1); var value = ordered[i]; ordered[i] = ordered[j]; ordered[j] = value; }
+                    checkpoint?.Begin(ordered, checkpointFingerprint);
+                }
                 string resultsFolder = Path.Combine(folder, "Server results", DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff"));
                 var good = new ConcurrentBag<ProxyTypeDetector.ProxyTestResult>();
                 var geoQueue = new ConcurrentQueue<ProxyTypeDetector.ProxyTestResult>();
@@ -66,13 +87,19 @@ namespace ScrapeX
                         catch (OperationCanceledException) { }
                         catch (Exception ex) { Diagnostic?.Invoke("Country enrichment: " + ex.Message); }
                     };
+                    if (resumed)
+                    {
+                        checkedCount = checkpoint.Completed.Count;
+                        foreach (var result in checkpoint.Working) { writer.Write(result); good.Add(result); geoQueue.Enqueue(result); working++; }
+                        ordered = ordered.Where(p => !checkpoint.Completed.Contains(p.Key)).ToArray();
+                    }
                     var geoTasks = new[] { Task.Run(resolve), Task.Run(resolve) };
                     try
                     {
                         var scheduler = new ProxyCheckScheduler(); scheduler.Diagnostic += msg => Diagnostic?.Invoke(msg);
                         await scheduler.RunAsync(ordered, http, https, parallelism, timeout, retry, result =>
                         {
-                            writer.Write(result); Interlocked.Increment(ref checkedCount);
+                            writer.Write(result); checkpoint?.Record(result); Interlocked.Increment(ref checkedCount);
                             if (result.HttpsVerified || result.HttpWorking)
                             { good.Add(result); Interlocked.Increment(ref working); geoQueue.Enqueue(result); }
                         }, token).ConfigureAwait(false);
@@ -86,10 +113,15 @@ namespace ScrapeX
                 token.ThrowIfCancellationRequested();
                 phase = "Publishing snapshot";
                 publication.Publish(good.Select(PublishedProxy.FromResult).Where(p => p != null));
+                try { checkpoint?.Complete(); } catch (IOException ex) { Diagnostic?.Invoke("Published, but checkpoint cleanup needs retry: " + ex.Message); }
                 Diagnostic?.Invoke("Published " + working + " working endpoints. Results: " + resultsFolder);
                 return working;
             }
-            finally { phase = "Idle"; if (admitted) RefreshCoordinator.NetworkWork.Release(); }
+            finally
+            {
+                try { checkpoint?.Dispose(); }
+                finally { phase = "Idle"; if (admitted) RefreshCoordinator.NetworkWork.Release(); }
+            }
         }
     }
 }
