@@ -1,26 +1,40 @@
 <div align="center">
   <img src="ScrapeX/Resources/scrapex-logo.png" alt="ScrapeX" width="420" />
   <h1>ScrapeX — Proxy Intelligence Workspace</h1>
-  <p><strong>Collect. Verify. Organize. Export.</strong></p>
-  <p>Discover public proxies, verify their capabilities, and organize your results in one Windows desktop workspace.</p>
+  <p><strong>Collect. Verify. Publish.</strong></p>
+  <p>Collect and verify public proxies, then serve a filtered feed from your own Windows server.</p>
   <p>
     <img alt="Platform: Windows" src="https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square" />
     <img alt="Framework: .NET 4.8" src="https://img.shields.io/badge/.NET-Framework%204.8-512BD4?style=flat-square" />
     <img alt="Language: C Sharp" src="https://img.shields.io/badge/language-C%23-239120?style=flat-square" />
-    <img alt="Bundled sources: 168" src="https://img.shields.io/badge/bundled%20sources-168-36D6B5?style=flat-square" />
+    <img alt="Bundled sources: 180" src="https://img.shields.io/badge/bundled%20sources-180-36D6B5?style=flat-square" />
   </p>
   <p><a href="#features">English</a> · <a href="#persian">فارسی</a></p>
   <p><a href="https://github.com/unknown-killer/ScrapeX/releases/latest"><strong>Download for Windows</strong></a> · <a href="#features">Features</a> · <a href="#download--run">Quick start</a> · <a href="#build-from-source">Build from source</a></p>
 </div>
 
+![ScrapeX server controls](docs/server-api.png)
+*Server API: connection settings, scheduled refreshes and filtered feed links.*
+
+![ScrapeX monitoring](docs/monitoring.png)
+*Monitoring: a real online smoke-test publication. Counts and availability depend on the network and check time.*
+
+<details><summary>Desktop checking workspace</summary>
+
 ![ScrapeX desktop interface](docs/screenshot.png)
-*Interface preview with synthetic demonstration rows. Live proxy availability varies.*
+*Desktop layout preview with synthetic demonstration rows.*
+
+</details>
 
 ## Features
 
 | Capability | What ScrapeX does |
 | --- | --- |
-| **Built-in proxy discovery** | Start collecting immediately from 168 bundled sources, including public feeds, APIs and supported websites. Duplicate endpoints are merged automatically. |
+| **Your own proxy API** | Host TXT lists or JSON records from the Server API tab. Build links with country, protocol and HTTPS filters; use public access or API-key authentication. |
+| **Scheduled collection & checking** | Refresh every 15 minutes to 7 days. A complete check replaces the published list; interrupted cycles keep the previous publication available within its age limit. |
+| **Live monitoring** | Track available proxies, HTTPS totals, country flags and protocol breakdowns, request traffic, current progress and recent refreshes in a dedicated tab. |
+| **Fresh, paginated feeds** | Filter by maximum TCP latency and result age, sort by ping, and retrieve up to 10,000 records per page. Expired results are excluded automatically. |
+| **Built-in proxy discovery** | Start collecting immediately from 180 bundled sources, including public feeds, APIs and supported websites. Duplicate endpoints are merged automatically. |
 | **HTTP · SOCKS4 · SOCKS5** | Identify supported proxy protocols and see working totals for each type at a glance. |
 | **HTTPS / TLS verification** | Verify real HTTPS requests with certificate and hostname validation. Browse and export HTTPS-verified and HTTP-only proxies separately. |
 | **Parallel checking** | Process multiple proxies concurrently with adjustable parallelism, configurable timeouts, adaptive connection management and live progress. |
@@ -33,13 +47,27 @@
 
 ## Download & run
 
-1. Download **ScrapeX-v1.0.1-windows-portable.zip** from [Releases](https://github.com/unknown-killer/ScrapeX/releases).
+1. Download **ScrapeX-v1.1.0-windows-portable.zip** from [Releases](https://github.com/unknown-killer/ScrapeX/releases).
 2. Extract the entire archive to a writable folder on Windows with **.NET Framework 4.8** installed.
 3. Run `ScrapeX.exe`, keeping its DLL and configuration file alongside it.
 4. Choose **Collect proxies**, import an endpoint list, or click **Check HTTP + TLS** to collect automatically when the list is empty.
 5. Use **Working Proxy**, **Export HTTPS**, **Export HTTP only** and **Results folder** to inspect and save results.
 
 Saved sessions and country cache live under `%LOCALAPPDATA%\ScrapeX`.
+
+## Serve a proxy feed
+
+1. Open **Server API**, choose a port and set the public address used in generated links.
+2. Keep API-key access enabled for private clients, or select **Public list** for links that open directly in a browser.
+3. Enable automatic refresh and choose the interval, or publish an existing checked desktop list.
+4. Click **Save & start API**, then use **Refresh now** when needed. **Monitoring** shows publication totals and progress.
+5. Choose a protocol, country codes and output format in **Build your link**.
+
+```bash
+curl -H "X-Api-Key: YOUR_KEY" "http://127.0.0.1:8088/api/v1/proxies?format=json&type=socks5&country=US,DE&https=true&limit=100"
+```
+
+The default listener is local to this computer. Remote deployment needs a Windows URL reservation and firewall configuration; HTTPS public URLs use a reverse proxy. ScrapeX must stay open: this release runs in the desktop session, not as a Windows service. See the bilingual [server & API guide](docs/SERVER-API.md) for setup, all filters and examples.
 
 ## Understanding the results
 
@@ -68,11 +96,11 @@ msbuild ScrapeX.sln /p:Configuration=Release
 .\tools\build-and-test.ps1
 ```
 
-Use **View Designer** on `Form1.cs` and `ExportForm.cs` to edit controls visually. The default client size is 1440 × 1000; the result table expands with the window.
+Use **View Designer** on `Form1.cs`, `ExportForm.cs`, `ServerControl.cs` and `MonitorControl.cs` to edit controls visually. The default client size is 1440 × 1000; the result table expands with the window.
 
 ## Developer documentation
 
-The interface is built with standard WinForms Designer controls for visual customization in Visual Studio. See [technical documentation](docs/TECHNICAL.md) for architecture, source adapters and test coverage. Source-audit reports are included in the portable release; the bundled catalog was audited on **2026-10-07**.
+The interface is built with standard WinForms Designer controls for visual customization in Visual Studio. See [technical documentation](docs/TECHNICAL.md) for architecture, source adapters and test coverage. The [source audit](docs/SOURCE-AUDIT.md), dated **2026-11-13**, covers 271 candidate URLs researched in Chinese, Russian, Spanish and English. Twelve additions increased the sampled union by 280,240 unique endpoints. These are candidates, not verified working proxies; each collection is capped at 500,000. Mirror and subset feeds are documented as alternatives.
 
 ## Third-party components
 
@@ -86,13 +114,18 @@ See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the bundled dependency 
 
 ## فارسی — اسکرپ ایکس
 
-**جمع‌آوری، بررسی، دسته‌بندی و ذخیرهٔ پروکسی‌ها در یک برنامه.**
+**جمع‌آوری، بررسی و انتشار پروکسی‌ها از سرور خودتان.**
 
 اسکرپ ایکس یک برنامهٔ دسکتاپ برای ویندوز است که کشف پروکسی‌های عمومی، تشخیص پروتکل، بررسی HTTPS و مدیریت نتایج را در محیطی یکپارچه در اختیار شما قرار می‌دهد. از منابع آمادهٔ برنامه شروع کنید یا فهرست خودتان را وارد کنید؛ سپس پروکسی‌ها را بررسی و بر اساس نیازتان ذخیره کنید.
 
 ### امکانات برنامه
 
-- **جمع‌آوری از ۱۶۸ منبع آماده:** دریافت پروکسی از فهرست‌های عمومی، APIها و وب‌سایت‌های پشتیبانی‌شده، همراه با حذف خودکار موارد تکراری.
+- **سرور و API اختصاصی:** ساخت فهرست TXT یا خروجی JSON با فیلتر کشور، پروتکل و HTTPS؛ انتخاب دسترسی عمومی یا محافظت با کلید API.
+- **جمع‌آوری و بررسی زمان‌بندی‌شده:** تنظیم فاصلهٔ اجرا از ۱۵ دقیقه تا ۷ روز؛ انتشار فهرست جدید پس از پایان بررسی و حفظ انتشار قبلی در صورت لغو یا خطا، تا زمانی که نتایج منقضی نشده‌اند.
+- **تب مانیتورینگ:** مشاهدهٔ تعداد پروکسی‌ها، HTTPS، پرچم و تفکیک کشورها و پروتکل‌ها، درخواست‌های API، پیشرفت اجرا و تاریخچهٔ دورهای اخیر.
+- **خروجی تازه و صفحه‌بندی‌شده:** فیلتر حداکثر پینگ TCP و عمر نتیجه، مرتب‌سازی بر اساس پینگ و دریافت حداکثر ۱۰ هزار رکورد در هر صفحه؛ حذف خودکار نتایج منقضی از پاسخ‌ها.
+
+- **جمع‌آوری از ۱۸۰ منبع آماده:** دریافت پروکسی از فهرست‌های عمومی، APIها و وب‌سایت‌های پشتیبانی‌شده، همراه با حذف خودکار موارد تکراری.
 - **پشتیبانی از HTTP، SOCKS4 و SOCKS5:** تشخیص نوع پروکسی و نمایش تعداد پروکسی‌های فعال برای هر پروتکل.
 - **بررسی واقعی HTTPS و TLS:** ارسال درخواست HTTPS از مسیر پروکسی با اعتبارسنجی گواهی و نام میزبان؛ نمایش و ذخیرهٔ جداگانهٔ پروکسی‌های تأییدشدهٔ HTTPS و پروکسی‌های صرفاً HTTP.
 - **بررسی هم‌زمان پروکسی‌ها:** تنظیم تعداد بررسی‌های موازی و زمان انتظار، مدیریت تطبیقی اتصال‌ها و مشاهدهٔ پیشرفت بررسی به‌صورت زنده.
@@ -105,7 +138,7 @@ See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the bundled dependency 
 
 ### دانلود و شروع کار
 
-۱. از [بخش دانلود نسخه‌ها](https://github.com/unknown-killer/ScrapeX/releases/latest)، فایل **ScrapeX-v1.0.1-windows-portable.zip** را دریافت کنید.
+۱. از [بخش دانلود نسخه‌ها](https://github.com/unknown-killer/ScrapeX/releases/latest)، فایل **ScrapeX-v1.1.0-windows-portable.zip** را دریافت کنید.
 
 ۲. تمام محتویات فایل فشرده را در پوشه‌ای با امکان نوشتن استخراج کنید. برای اجرا، ویندوز و **.NET Framework 4.8** لازم است.
 
@@ -123,6 +156,20 @@ See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the bundled dependency 
 
 <div dir="rtl">
 
+### انتشار فهرست روی سرور
+
+۱. تب **Server API** را باز کنید و پورت و آدرس عمومی مورد استفاده در لینک‌ها را وارد کنید.
+
+۲. برای کاربران خصوصی، کلید API را نگه دارید؛ برای لینک مستقیم قابل باز شدن در مرورگر، **Public list** را انتخاب کنید.
+
+۳. جمع‌آوری خودکار و فاصلهٔ زمانی را تنظیم کنید یا نتایج بررسی‌شدهٔ دسکتاپ را منتشر کنید.
+
+۴. **Save & start API** را بزنید. با **Refresh now** یک دور تازه شروع می‌شود و تب **Monitoring** آمار و پیشرفت را نشان می‌دهد.
+
+۵. در بخش **Build your link**، نوع پروکسی، کد کشورها و قالب خروجی را انتخاب کنید.
+
+حالت پیش‌فرض فقط روی همین کامپیوتر قابل دسترسی است. دسترسی از راه دور به رزرو URL ویندوز و تنظیم فایروال نیاز دارد؛ آدرس عمومی HTTPS با reverse proxy راه‌اندازی می‌شود. برنامه باید باز بماند؛ این نسخه سرویس مستقل ویندوز نیست. [راهنمای فارسی و انگلیسی سرور و API](docs/SERVER-API.md) شامل مراحل نصب، تمام فیلترها و نمونهٔ درخواست‌هاست.
+
 ### معنی اطلاعات جدول
 
 - **HTTPS VERIFIED:** درخواست واقعی HTTPS از مسیر پروکسی و با اعتبارسنجی گواهی TLS موفق بوده است.
@@ -137,9 +184,9 @@ See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the bundled dependency 
 
 در ویژوال استودیو، ابزار **.NET desktop development** و بستهٔ **.NET Framework 4.8 targeting pack** را نصب کنید. فایل **ScrapeX.sln** را باز کنید، بسته‌های NuGet از جمله **Newtonsoft.Json 13.0.3** را بازیابی و پروژه را در حالت **Release / Any CPU** بسازید. خروجی در پوشهٔ **ScrapeX/bin/Release** قرار می‌گیرد.
 
-کنترل‌های رابط با WinForms Designer قابل ویرایش‌اند. روی **Form1.cs** و **ExportForm.cs** گزینهٔ **View Designer** را انتخاب کنید. اندازهٔ پیش‌فرض فضای داخلی پنجره ۱۴۴۰ × ۱۰۰۰ است و جدول نتایج با تغییر اندازهٔ پنجره گسترش می‌یابد.
+کنترل‌های رابط با WinForms Designer قابل ویرایش‌اند. روی **Form1.cs**، **ExportForm.cs**، **ServerControl.cs** و **MonitorControl.cs** گزینهٔ **View Designer** را انتخاب کنید. اندازهٔ پیش‌فرض فضای داخلی پنجره ۱۴۴۰ × ۱۰۰۰ است و جدول نتایج با تغییر اندازهٔ پنجره گسترش می‌یابد.
 
-دستورهای ساخت و اجرای آزمون‌ها در [بخش انگلیسی ساخت از سورس](#build-from-source) و جزئیات معماری و آزمون‌ها در [مستندات فنی](docs/TECHNICAL.md) آمده‌اند. گزارش بررسی منابع همراه نسخهٔ قابل اجرا ارائه شده است؛ تاریخ بررسی فهرست پیش‌فرض **۲۰۲۶-۱۰-۰۷** است.
+دستورهای ساخت و اجرای آزمون‌ها در [بخش انگلیسی ساخت از سورس](#build-from-source) و جزئیات معماری و آزمون‌ها در [مستندات فنی](docs/TECHNICAL.md) آمده‌اند. [گزارش بررسی منابع](docs/SOURCE-AUDIT.md) به تاریخ **۲۰۲۶-۱۱-۱۳** شامل ۲۷۱ آدرس بررسی‌شده پس از جست‌وجو به زبان‌های چینی، روسی، اسپانیایی و انگلیسی است. ۱۲ منبع اضافه‌شده، در نمونه‌برداری ۲۸۰٬۲۴۰ آدرس یکتای بیشتر داشتند. این عدد مربوط به آدرس‌های کاندید است، نه پروکسی سالم تأییدشده؛ سقف هر جمع‌آوری ۵۰۰ هزار آدرس است. منابع تکراری و زیرمجموعه نیز به‌عنوان جایگزین مستند شده‌اند.
 
 ### اجزای شخص ثالث
 

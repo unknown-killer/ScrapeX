@@ -19,3 +19,5 @@ reports/*
 !reports/catalog-audit/
 reports/catalog-audit/*
 !reports/catalog-audit/requested-sources.txt
+
+!reports/server-tests.txt
